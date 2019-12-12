@@ -1,0 +1,16 @@
+INPUT:
+    SIZE: (224, 224)
+DATASET:
+    NAME: 'skin10'
+    DIR: './datasets/skin100_dataset/train'
+    TRAIN_LIST: './datasets/train_skin10.txt'
+    VALID_LIST: './datasets/valid_skin10.txt'
+    TEST_LIST: './datasets/test_skin10.txt'
+    BATCH_SIZE: 32
+TRANSFORMS:
+    TENSOR:
+        NORMALIZATION: 
+            mean: [0.6054, 0.4433, 0.4084]
+            std: [0.2125, 0.1816, 0.1786]
+    IMG:
+        AUG_CIFAR: True

@@ -1,0 +1,16 @@
+INPUT:
+    SIZE: (32, 32)
+MODEL:
+    META_ARCH: 'Resnet50'
+    CLASSES: 10
+DATASET:
+    NAME: 'CIFAR10'
+    DIR: './datasets/cifar10'
+    BATCH_SIZE: 32
+TRANSFORMS:
+    TENSOR:
+        NORMALIZATION: 
+            mean: [0.485, 0.456, 0.406]
+            std: [0.229, 0.224, 0.225]
+    IMG:
+        AUG_CIFAR: True
