@@ -2,7 +2,7 @@
 Runs a model on a single node across N-gpus.
 """
 import sys
-sys.path.append('../..')
+# sys.path.append('../..')
 import argparse
 import os
 from argparse import ArgumentParser
@@ -14,10 +14,10 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.logging import TestTubeLogger, MLFlowLogger
 
 from torchline.config import get_cfg
-from torchline.engine.lightning_module_template import LightningTemplateModel
+from torchline.engine import build_module_template
 from torchline.utils import Logger
 
-logger = Logger(__name__).getlog()
+logger_print = Logger(__name__).getlog()
 SEED = 2334
 torch.manual_seed(SEED)
 np.random.seed(SEED)
@@ -33,7 +33,7 @@ def setup(args):
     cfg.freeze()
     
     if hasattr(args, "config_file"):
-        logger.info(
+        logger_print.info(
             "Contents of args.config_file={}:\n{}".format(
                 args.config_file, open(args.config_file, "r").read()
             )
@@ -42,7 +42,7 @@ def setup(args):
     # if not (hasattr(args, "eval_only") and args.eval_only):
     #     torch.backends.cudnn.benchmark = cfg.CUDNN_BENCHMARK
     
-    logger.info("Running with full config:\n{}".format(cfg))
+    logger_print.info("Running with full config:\n{}".format(cfg))
     return cfg
 
 class MyTrainer(Trainer):
@@ -108,7 +108,7 @@ def main(hparams):
     # ------------------------
     # 1 INIT LIGHTNING MODEL
     # ------------------------
-    model = LightningTemplateModel(cfg)
+    model = build_module_template(cfg)
 
     # ------------------------
     # 2 INIT TRAINER

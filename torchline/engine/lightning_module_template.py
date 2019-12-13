@@ -17,11 +17,12 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from torchvision.datasets import MNIST
 
-from torchline.data import build_data
+from torchline.data import build_data, build_sampler
 from torchline.losses import build_loss_fn
 from torchline.models import build_model
+from .build import MODULE_TEMPLATE_REGISTRY
 
-
+@MODULE_TEMPLATE_REGISTRY.register()
 class LightningTemplateModel(LightningModule):
     """
     Sample model to show how to define a template
@@ -76,7 +77,16 @@ class LightningTemplateModel(LightningModule):
         cfg.freeze()
         return build_data(cfg)
 
-
+    @classmethod
+    def build_sampler(cls, cfg, is_train):
+        """
+        Layout training dataset
+        :return:
+        """
+        cfg.defrost()
+        cfg.DATASET.IS_TRAIN = is_train
+        cfg.freeze()
+        return build_sampler(cfg)
 
     # ---------------------
     # TRAINING
@@ -203,18 +213,15 @@ class LightningTemplateModel(LightningModule):
         optim_name = self.cfg.OPTIM.NAME
         momentum = self.cfg.OPTIM.MOMENTUM
         weight_decay = self.cfg.OPTIM.WEIGHT_DECAY
+        lr = self.cfg.OPTIM.BASE_LR
         if optim_name.lower() == 'sgd':
-            return torch.optim.SGD(self.parameters(), lr=self.cfg.OPTIM.BASE_LR, 
-                                        momentum=momentum, weight_decay=weight_decay)
+            return torch.optim.SGD(self.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
         elif optim_name.lower() == 'adadelta':
-            return torch.optim.Adagrad(self.parameters(), lr=self.cfg.OPTIM.BASE_LR, 
-                                            weight_decay=weight_decay)
+            return torch.optim.Adagrad(self.parameters(), lr=lr, weight_decay=weight_decay)
         elif optim_name.lower() == 'adam': 
-            return torch.optim.Adam(self.parameters(), lr=self.cfg.OPTIM.BASE_LR, 
-                                        weight_decay=weight_decay)
+            return torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
         elif optim_name.lower() == 'rmsprop':
-            return torch.optim.RMSprop(self.parameters(), lr=self.cfg.OPTIM.BASE_LR, 
-                                            momentum=momentum, weight_decay=weight_decay)
+            return torch.optim.RMSprop(self.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
         else:
             print(f"{optim_name} not implemented")
             raise NotImplementedError
@@ -259,7 +266,7 @@ class LightningTemplateModel(LightningModule):
         dataset = self.build_data(self.cfg, is_train)
 
         # when using multi-node (ddp) we need to add the  datasampler
-        train_sampler = None
+        train_sampler = self.build_sampler(self.cfg, is_train)
         batch_size = self.batch_size
 
         if self.use_ddp:

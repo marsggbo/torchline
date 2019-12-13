@@ -98,6 +98,7 @@ _C.TRANSFORMS.IMG.RANDOM_ROTATION.degrees = 15
 
 
 _C.LABEL_TRANSFORMS = CN() # label transforms
+_C.LABEL_TRANSFORMS.NAME = 'default'
 
 
 # ---------------------------------------------------------------------------- #
@@ -105,8 +106,8 @@ _C.LABEL_TRANSFORMS = CN() # label transforms
 # ---------------------------------------------------------------------------- #
 _C.DATALOADER = CN()
 _C.DATALOADER.NUM_WORKERS = 4
-_C.DATALOADER.SAMPLER_TRAIN = ""
-_C.DATALOADER.SAMPLER_TEST = ""
+_C.DATALOADER.SAMPLER_TRAIN = "default"
+_C.DATALOADER.SAMPLER_TEST = "default"
 
 
 # ---------------------------------------------------------------------------- #
@@ -176,6 +177,13 @@ _C.HOOKS.MODEL_CHECKPOINT.filepath = './output/checkpoints'
 _C.HOOKS.MODEL_CHECKPOINT.monitor = 'val_loss'
 _C.HOOKS.MODEL_CHECKPOINT.mode = 'min'
 
+
+# ---------------------------------------------------------------------------- #
+# Module template 
+# ---------------------------------------------------------------------------- #
+
+_C.MODULE_TEMPLATE = CN()
+_C.MODULE_TEMPLATE.NAME = 'LightningTemplateModel'
 
 # ---------------------------------------------------------------------------- #
 # Trainer 

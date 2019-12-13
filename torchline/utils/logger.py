@@ -30,7 +30,6 @@ class Logger(object):
             os.mkdir(file_dir)
         self.log_path = file_dir
         self.log_name = os.path.join(self.log_path, log_name)
-        print(self.log_name)
 
         # fh = logging.FileHandler(self.log_name, 'a')  # 追加模式  这个是python2的
         fh = logging.FileHandler(self.log_name, 'a', encoding='utf-8')  # 这个是python3的
