@@ -98,7 +98,7 @@ class DefaultTransforms:
 
     def read_transform_from_cfg(self):
         transform_list = []
-        self.check_resize_options()
+        self.check_conflict_options()
         img_transforms = self.cfg.TRANSFORMS.IMG
 
         # resize and crop opertaion
@@ -131,12 +131,14 @@ class DefaultTransforms:
         if img_transforms.RANDOM_ROTATION.enable:
             degrees = img_transforms.RANDOM_ROTATION.degrees
             transform_list.append(transforms.RandomRotation(degrees))
+        transform_list.append(transforms.ToTensor())
+        transform_list.append(self.normalize)
         return transforms.Compose(transform_list)
 
     def check_conflict_options(self):
         count = self.cfg.TRANSFORMS.IMG.RANDOM_RESIZED_CROP.enable + \
                 self.cfg.TRANSFORMS.IMG.RESIZE.enable
-        assert count <= 1, 'You can only use one resize transform operation'
+        assert count == 1, 'You can only use one resize transform operation'
 
         count = self.cfg.TRANSFORMS.IMG.RANDOM_CROP.enable + \
                 self.cfg.TRANSFORMS.IMG.CENTER_CROP.enable

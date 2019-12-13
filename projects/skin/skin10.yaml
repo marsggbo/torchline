@@ -1,0 +1,30 @@
+INPUT:
+    SIZE: (224, 224)
+MODEL:
+    META_ARCH: 'Resnet50'
+    CLASSES: 10
+DATASET:
+    NAME: 'Skin10Dataset'
+    DIR: '../datasets/skin100_dataset/train'
+    TRAIN_LIST: '../datasets/skin10_train.txt'
+    VALID_LIST: '../datasets/skin10_test.txt'
+    TEST_LIST: '../datasets/skin10_test.txt'
+    BATCH_SIZE: 32
+TRANSFORMS:
+    NAME: 'SkinTransforms'
+    TENSOR:
+        NORMALIZATION: 
+            mean: [0.6054, 0.4433, 0.4084]
+            std: [0.2125, 0.1816, 0.1786]
+    IMG:
+        AUG_CIFAR: False
+        COLOR_JITTER:
+            brightness: 0.05
+            contrast: 0.05
+            saturation: 0.05
+            hue: 0.05
+TRAINER:
+    DEFAULT_SAVE_PATH: './output'
+    LOGGER:
+        type: 'mlflow'
+        tracking_uri: './output'

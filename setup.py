@@ -5,11 +5,14 @@ with open('requirements.txt', 'r') as f:
 
 setup(
     name="torchline", # Replace with your own username
-    version="0.1",
+    version="0.1.2",
     author="marsggbo",
     author_email="csxinhe@comp.hkbu.edu.hk",
     description="A framework for easy to use Pytorch",
-    long_description='...',
+    long_description='''
+    The ML developer can easily use this 
+    framework to implement your ideas. Our framework is built based on pytorch_lightning, 
+    and the structures is inspired by detectron2''',
     long_description_content_type="text/markdown",
     url="https://github.com/marsggbo/torchline",
     packages=find_packages(exclude=("tests", "projects")),

@@ -26,12 +26,13 @@
 
 ### todo list
 
-- [ ] 弄清楚logging机制
-- [ ] save和load模型，优化器参数
-- [ ] skin数据集读取测试
-- [ ] 构建skin project
+- [x] 弄清楚logging机制
+- [x] save和load模型，优化器参数
+- [x] skin数据集读取测试
+- [x] 构建skin project
 - [ ] 能否预测单张图片？
 - [ ] 构建一个简单地API接口
 - [ ] 进一步完善包导入
 - [ ] 完善使用文档
 - [ ] 设置训练epoch数量
+- [ ] 设置更多默认的数据集和模型(vgg, densenet等)

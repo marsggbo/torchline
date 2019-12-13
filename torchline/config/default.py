@@ -75,6 +75,7 @@ _C.TRANSFORMS.IMG.AUG_CIFAR = False
 
 # color_jitter
 _C.TRANSFORMS.IMG.COLOR_JITTER = CN()
+_C.TRANSFORMS.IMG.COLOR_JITTER.enable = 0
 _C.TRANSFORMS.IMG.COLOR_JITTER.brightness = 0.
 _C.TRANSFORMS.IMG.COLOR_JITTER.contrast = 0.
 _C.TRANSFORMS.IMG.COLOR_JITTER.saturation = 0.
@@ -225,7 +226,14 @@ _C.LOG.NAME = 'log.txt'
 # Misc 
 # ---------------------------------------------------------------------------- #
 
-_C.OUTPUT_DIR = './output'
 _C.SEED = 666
-_C.CUDNN_BENCHMARK = False
+_C.DEFAULT_CUDNN_BENCHMARK = True
+_C.TEST_ONLY = CN()
+_C.TEST_ONLY.type = 'ckpt'
+_C.TEST_ONLY.checkpoint_path = '' # load_from_checkpoint
+_C.TEST_ONLY.weights_path = '' # load_from_metrics
+_C.TEST_ONLY.tags_csv = ''
+_C.TEST_ONLY.on_gpu = True
+_C.TEST_ONLY.map_location = 'cuda:0'
+_C.TEST_ONLY.test_file_path = '' # specify the path of images
 
