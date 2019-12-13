@@ -1,7 +1,20 @@
 # torchline
 Easy to use Pytorch
 
+# Dependences
 
+- Python>=3.6
+- Pytorch==1.3.1
+- torchvision==0.4.2
+- yacs==0.1.6
+- pytorch-lightning==0.5.3.2
+
+
+# Install
+
+```bash
+pip install torchline
+```
 
 # Structures
 

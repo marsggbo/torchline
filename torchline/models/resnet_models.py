@@ -36,13 +36,8 @@ class Resnet50(nn.Module):
         self.layer3 = nn.Sequential(*model[6])
         self.layer4 = nn.Sequential(*model[7])
 
-        self.clf = nn.Sequential(
-            nn.Conv2d(2048, 512, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512, self.num_classes, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.AdaptiveAvgPool2d((1,1))
-        )
+        self.avg_pool = nn.AdaptiveAvgPool2d((1,1))
+        self.clf = nn.Linear(in_features=2048, out_features=self.num_classes)
     
     def extract_features(self, x):
         assert len(self.cfg.MODEL.FEATURES) >= 1
@@ -67,13 +62,14 @@ class Resnet50(nn.Module):
             x (tensor): N*c*h*w
 
         return:
-            img_cls_preds (tensor): N*classes
+            predictions (tensor): N*classes
         '''
         bs= x.shape[0]
         features = self.extract_features(x)
-        img_cls_preds = self.clf(features).view(bs, -1)
+        predictions = self.avg_pool(features).view(bs, -1)
+        predictions = self.clf(predictions).view(bs, -1)
 
-        return img_cls_preds
+        return predictions
 
 
 
