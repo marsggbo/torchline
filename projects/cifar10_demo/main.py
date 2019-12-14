@@ -52,22 +52,43 @@ class MyTrainer(Trainer):
         
         # hooks
         HOOKS = self.cfg.HOOKS
-        params = {key: HOOKS.EARLY_STOPPING[key] for key in HOOKS.EARLY_STOPPING if key != 'enable'}
-        early_stop_callback = EarlyStopping(**params) if HOOKS.EARLY_STOPPING['enable'] else False
+        params = {key: HOOKS.EARLY_STOPPING[key] for key in HOOKS.EARLY_STOPPING if key != 'type'}
+        early_stop_callbacks = {
+            0: True,  # default setting
+            1: False, # do not use early stopping
+            2: EarlyStopping(**params) # use custom setting
+        }
+        assert HOOKS.EARLY_STOPPING.type in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
+        early_stop_callback = early_stop_callbacks[HOOKS.EARLY_STOPPING.type]
 
-        params = {key: HOOKS.MODEL_CHECKPOINT[key] for key in HOOKS.MODEL_CHECKPOINT if key != 'enable'}
-        checkpoint_callback = ModelCheckpoint(**params)
+        params = {key: HOOKS.MODEL_CHECKPOINT[key] for key in HOOKS.MODEL_CHECKPOINT if key != 'type'}
+        checkpoint_callbacks = {
+            0: True,
+            1: False,
+            2: ModelCheckpoint(**params)
+        }
+        assert HOOKS.MODEL_CHECKPOINT.type in checkpoint_callbacks, 'The type of model checkpoint_callback can only be in [0,1,2]'
+        checkpoint_callback = checkpoint_callbacks[HOOKS.MODEL_CHECKPOINT.type]
 
         # logger
         LOGGER = self.cfg.TRAINER.LOGGER
-        params = {key: LOGGER[key] for key in LOGGER if key != 'type'}
-        if LOGGER['type'] == 'mlflow':
-            logger = MLFlowLogger(**params)
-        elif LOGGER['type'] == 'test_tube':
-            logger = TestTubeLogger(**params)
+        if LOGGER.type == 'mlflow':
+            params = {key: LOGGER.MLFLOW[key] for key in LOGGER.MLFLOW}
+            custom_logger = MLFlowLogger(**params)
+        elif LOGGER.type == 'test_tube':
+            params = {key: LOGGER.TEST_TUBE[key] for key in LOGGER.TEST_TUBE}
+            custom_logger = TestTubeLogger(**params)
         else:
-            print(f"{LOGGER['type']} not supported")
+            print(f"{LOGGER.type} not supported")
             raise NotImplementedError
+        
+        loggers = {
+            0: True,
+            1: False,
+            2: custom_logger
+        } # 0: True (default)  1: False  2: custom
+        logger = loggers[LOGGER.SETTING] 
+
 
         # you can update trainer_params to change different parameters
         self.trainer_params = {

@@ -164,16 +164,16 @@ _C.HOOKS = CN()
 
 ## EarlyStopping
 _C.HOOKS.EARLY_STOPPING = CN()
-_C.HOOKS.EARLY_STOPPING.enable = 1
+_C.HOOKS.EARLY_STOPPING.type = 2 # 0: True 1: False 2: custom
 _C.HOOKS.EARLY_STOPPING.monitor = 'val_loss'
 _C.HOOKS.EARLY_STOPPING.min_delta = 0.
-_C.HOOKS.EARLY_STOPPING.patience = 5 
+_C.HOOKS.EARLY_STOPPING.patience = 10
 _C.HOOKS.EARLY_STOPPING.mode = 'min'
 _C.HOOKS.EARLY_STOPPING.verbose = True
 
 # ModelCheckpoint
 _C.HOOKS.MODEL_CHECKPOINT = CN()
-_C.HOOKS.MODEL_CHECKPOINT.enable = 1
+_C.HOOKS.MODEL_CHECKPOINT.type = 0 # 0: True 1: False 2: custom
 _C.HOOKS.MODEL_CHECKPOINT.filepath = './output/checkpoints'
 _C.HOOKS.MODEL_CHECKPOINT.monitor = 'val_loss'
 _C.HOOKS.MODEL_CHECKPOINT.mode = 'min'
@@ -202,17 +202,15 @@ _C.TRAINER.DEFAULT_SAVE_PATH = './output'
 _C.TRAINER.LOG_GPU_MEMORY = "min_max" # 'min_max': log only the min/max utilization
 _C.TRAINER.FAST_DEV_RUN = False # everything only with 1 training and 1 validation batch.
 _C.TRAINER.LOGGER = CN()
+_C.TRAINER.LOGGER.SETTING = 0 # 0: True  1: False  2: custom
 _C.TRAINER.LOGGER.type = 'mlflow'
-_C.TRAINER.LOGGER.experiment_name = 'default'
-_C.TRAINER.LOGGER.tracking_uri = './output'
-
-# _C.TRAINER.LOGGER = {
-#     'type': 'test_tube',
-#     'name': 'default',
-#     'save_dir': './output',
-#     'debug': False,
-#     'create_git_tag': False,
-# }    
+_C.TRAINER.LOGGER.MLFLOW = CN()
+_C.TRAINER.LOGGER.MLFLOW.experiment_name = 'torchline_logs'
+_C.TRAINER.LOGGER.MLFLOW.tracking_uri = _C.TRAINER.DEFAULT_SAVE_PATH
+_C.TRAINER.LOGGER.TEST_TUBE = CN()
+_C.TRAINER.LOGGER.TEST_TUBE.name = 'torchline_logs'
+_C.TRAINER.LOGGER.TEST_TUBE.save_dir = _C.TRAINER.DEFAULT_SAVE_PATH
+_C.TRAINER.LOGGER.TEST_TUBE.debug = False
 
 
 # ---------------------------------------------------------------------------- #

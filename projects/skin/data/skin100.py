@@ -22,14 +22,15 @@ def load_clean_data(path, class_to_idx):
 
 @DATASET_REGISTRY.register()
 class Skin100Dataset(ImageFolder):
-    def __init__(self, args, is_train):
-        super(Skin100Dataset, self).__init__(args.data_root)
-        self.args = args
+    def __init__(self, cfg):
+        super(Skin100Dataset, self).__init__(cfg.DATASET.DIR)
+        self.cfg = cfg
+        is_train = self.cfg.DATASET.IS_TRAIN
         if is_train:
-            self.data_list = args.trainlist
+            self.data_list = cfg.DATASET.TRAIN_LIST
         else:
-            self.data_list = args.testlist
-        self.transform = get_transform_ops(args, is_train)
+            self.data_list = cfg.DATASET.TEST_LIST
+        self.transforms = build_transforms(cfg)
         self.target_transform = None
         self.samples = load_clean_data(self.data_list, self.class_to_idx)
         self.imgs = self.samples
@@ -37,8 +38,8 @@ class Skin100Dataset(ImageFolder):
     def __getitem__(self, index):
         path, target = self.samples[index]
         sample = self.loader(path)
-        if self.transform is not None:
-            sample = self.transform(sample)
+        if self.transforms is not None:
+            sample = self.transforms.transform(sample)
         if self.target_transform is not None:
             target = self.target_transform(target)
 
