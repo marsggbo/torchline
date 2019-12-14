@@ -23,6 +23,8 @@ from data import *
 
 logger_print = Logger(__name__).getlog()
 
+def parse_cfg_param(cfg_item):
+    return cfg_item if cfg_item else None
 
 def setup(args):
     """
@@ -57,6 +59,9 @@ class MyTrainer(Trainer):
     def __init__(self, cfg, hparams):
         self.cfg = cfg
         self.hparams = hparams
+        resume_from_checkpoint = None 
+        if hparams.resume:
+            resume_from_checkpoint = hparams.resume
         
         # hooks
         HOOKS = self.cfg.HOOKS
@@ -103,13 +108,13 @@ class MyTrainer(Trainer):
             'use_amp': hparams.use_16bit,
             'distributed_backend': hparams.distributed_backend,
 
-            # 'min_epochs' : cfg.TRAINER.MIN_EPOCHS,
-            # 'max_epochs' : cfg.TRAINER.MAX_EPOCHS,
+            'min_epochs' : cfg.TRAINER.MIN_EPOCHS,
+            'max_epochs' : cfg.TRAINER.MAX_EPOCHS,
             'gradient_clip_val' : cfg.TRAINER.GRAD_CLIP_VAL,
             'show_progress_bar' : cfg.TRAINER.SHOW_PROGRESS_BAR,
             'row_log_interval' : cfg.TRAINER.ROW_LOG_INTERVAL,
             'log_save_interval' : cfg.TRAINER.LOG_SAVE_INTERVAL,
-            'log_gpu_memory' : cfg.TRAINER.LOG_GPU_MEMORY,
+            'log_gpu_memory' : parse_cfg_param(cfg.TRAINER.LOG_GPU_MEMORY),
             'default_save_path' : cfg.TRAINER.DEFAULT_SAVE_PATH,
             'fast_dev_run' : cfg.TRAINER.FAST_DEV_RUN,
 
@@ -117,7 +122,8 @@ class MyTrainer(Trainer):
             'early_stop_callback': early_stop_callback,
             'checkpoint_callback': checkpoint_callback,
 
-            'weights_summary': None
+            'weights_summary': None,
+            'resume_from_checkpoint': resume_from_checkpoint
         }
 
         super(MyTrainer, self).__init__(
@@ -187,6 +193,12 @@ if __name__ == '__main__':
         type=str,
         default='dp',
         help='supports three options dp, ddp, ddp2'
+    )
+    parent_parser.add_argument(
+        '--resume',
+        type=str,
+        default='',
+        help='resume_from_checkpoint'
     )
     parent_parser.add_argument(
         '--use_16bit',

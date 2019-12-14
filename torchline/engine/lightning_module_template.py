@@ -15,7 +15,7 @@ from pytorch_lightning import LightningModule
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
-from torchvision.datasets import MNIST
+import torchvision
 
 from torchline.data import build_data, build_sampler
 from torchline.losses import build_loss_fn
@@ -133,7 +133,9 @@ class LightningTemplateModel(LightningModule):
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
         })
-
+        if self.current_epoch==0 and batch_idx==0:
+            for i, img in enumerate(inputs[:5]):
+                torchvision.transforms.ToPILImage()(img.cpu()).save(f'train_img{i}.jpg')
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
@@ -166,6 +168,9 @@ class LightningTemplateModel(LightningModule):
             'val_loss': loss_val,
             'val_acc': val_acc,
         })
+        if self.current_epoch==0 and batch_idx==0:
+            for i, img in enumerate(inputs[:5]):
+                torchvision.transforms.ToPILImage()(img.cpu()).save(f'eval_img{i}.jpg')
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
