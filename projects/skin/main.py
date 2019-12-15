@@ -20,6 +20,8 @@ from torchline.utils import Logger, get_imgs_to_predict
 
 from models import *
 from data import *
+from config import add_skin_config
+from losses import FocalLoss
 
 logger_print = Logger(__name__).getlog()
 
@@ -32,7 +34,9 @@ def setup(args):
     """
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
+    add_skin_config(cfg)
     cfg.merge_from_list(args.opts)
+    cfg.update({'hparams': args})
     cfg.freeze()
     
     if hasattr(args, "config_file"):
@@ -219,9 +223,9 @@ if __name__ == '__main__':
     )
 
     # each LightningModule defines arguments relevant to it
-    hyperparams = parent_parser.parse_args()
+    hparams = parent_parser.parse_args()
 
     # ---------------------
     # RUN TRAINING
     # ---------------------
-    main(hyperparams)
+    main(hparams)

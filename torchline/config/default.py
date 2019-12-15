@@ -119,6 +119,7 @@ _C.MODEL.META_ARCH = 'Resnet50'
 _C.MODEL.WEIGHTS = ""
 _C.MODEL.CLASSES = 10
 _C.MODEL.PRETRAINED = True
+_C.MODEL.FINETUNE = False
 _C.MODEL.FEATURES = ['f4', ]
 _C.MODEL.FEATURES_FUSION = 'sum'
 
@@ -134,7 +135,7 @@ _C.OPTIM.WEIGHT_DECAY = 0.0001
 
 # scheduler
 _C.OPTIM.SCHEDULER = CN()
-_C.OPTIM.SCHEDULER.NAME = 'CosineAnnealingLR'
+_C.OPTIM.SCHEDULER.NAME = 'MultiStepLR'
 _C.OPTIM.SCHEDULER.GAMMA = 0.1 # decay factor
 
 # for CosineAnnealingLR
@@ -149,7 +150,7 @@ _C.OPTIM.SCHEDULER.VERBOSE = True # print log once update lr
 _C.OPTIM.SCHEDULER.STEP_SIZE = 10
 
 # for MultiStepLR
-_C.OPTIM.SCHEDULER.MILESTONES = [10, 15, 25, 35]
+_C.OPTIM.SCHEDULER.MILESTONES = [10, 25, 35, 50]
 
 # ---------------------------------------------------------------------------- #
 # loss

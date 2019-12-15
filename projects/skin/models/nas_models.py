@@ -19,6 +19,13 @@ class Pretrainedmodels(nn.Module):
         model = pretrainedmodels.__dict__[model_name.lower()](num_classes=1000, pretrained=pretrained)
         model.last_linear = nn.Linear(in_features=model_params[model_name.lower()][0], 
                                     out_features=num_classes, bias=True)
+        if cfg.MODEL.FINETUNE:
+            print(f"finetuning {type(self).__name__} model")
+            for name, p in model.named_parameters():
+                if 'last_linear' not in name:
+                    p.requires_grad = False
+                else:
+                    p.requires_grad = True
         self.model = model
 
     def forward(self, x):

@@ -14,3 +14,21 @@ TRANSFORMS:
             std: [0.229, 0.224, 0.225]
     IMG:
         AUG_CIFAR: True
+TRAINER:
+    DEFAULT_SAVE_PATH: './output_cifar10'
+    LOGGER:
+        SETTING: 0
+        type: 'test_tube'
+        MLFLOW:
+            tracking_uri: './output_cifar10' 
+        TEST_TUBE:
+            save_dir: './output_cifar10'
+HOOKS:
+    EARLY_STOPPING:
+        type: 2
+        patience: 20
+        monitor: 'val_acc'
+        mode: 'max'
+    MODEL_CHECKPOINT:
+        type: 0
+        filepath: './output_cifar10'

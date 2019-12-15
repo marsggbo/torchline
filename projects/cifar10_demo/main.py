@@ -32,6 +32,7 @@ def setup(args):
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+    cfg.update({'hparams': args})
     cfg.freeze()
     
     if hasattr(args, "config_file"):

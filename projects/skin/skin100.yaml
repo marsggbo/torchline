@@ -36,8 +36,10 @@ HOOKS:
     EARLY_STOPPING:
         type: 2
         patience: 20
-        monitor: 'val_loss'
-        mode: 'min'
+        monitor: 'val_acc'
+        mode: 'max'
     MODEL_CHECKPOINT:
         type: 0
+        monitor: 'val_acc'
+        mode: 'max'
         filepath: './output_skin100'

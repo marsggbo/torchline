@@ -36,6 +36,7 @@ class LightningTemplateModel(LightningModule):
         # init superclass
         super(LightningTemplateModel, self).__init__()
         self.cfg = cfg
+        self.hparams = self.cfg.hparams
 
         self.batch_size = self.cfg.DATASET.BATCH_SIZE
 
