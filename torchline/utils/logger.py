@@ -24,7 +24,7 @@ class Logger(object):
 
         # 创建一个handler，用于写入日志文件
         self.log_time = time.strftime("%Y_%m_%d")
-        self.log_dir = f'./output'
+        self.log_dir = './'
         file_dir = os.path.join(os.getcwd(), self.log_dir)
         if not os.path.exists(file_dir):
             os.mkdir(file_dir)

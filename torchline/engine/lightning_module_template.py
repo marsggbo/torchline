@@ -135,8 +135,10 @@ class LightningTemplateModel(LightningModule):
             'log': tqdm_dict
         })
         if self.current_epoch==0 and batch_idx==0:
+            if not os.path.exists('train_valid_samples'):
+                os.makedirs('train_valid_samples')
             for i, img in enumerate(inputs[:5]):
-                torchvision.transforms.ToPILImage()(img.cpu()).save(f'train_img{i}.jpg')
+                torchvision.transforms.ToPILImage()(img.cpu()).save(f'./train_valid_samples/train_img{i}.jpg')
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
@@ -170,8 +172,10 @@ class LightningTemplateModel(LightningModule):
             'val_acc': val_acc,
         })
         if self.current_epoch==0 and batch_idx==0:
+            if not os.path.exists('train_valid_samples'):
+                os.makedirs('train_valid_samples')
             for i, img in enumerate(inputs[:5]):
-                torchvision.transforms.ToPILImage()(img.cpu()).save(f'eval_img{i}.jpg')
+                torchvision.transforms.ToPILImage()(img.cpu()).save(f'./train_valid_samples/train_img{i}.jpg')
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output

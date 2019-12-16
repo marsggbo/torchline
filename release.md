@@ -23,6 +23,11 @@
     - build_loss_fn
   - models
     - build_model
+    - 
+### 2019.12.16更新信息
+
+- 更新package版本至`torchline-0.1.3`
+- 更新transforms类结构，可以更加方便的自定义修改
 
 ### todo list
 
@@ -31,8 +36,9 @@
 - [x] skin数据集读取测试
 - [x] 构建skin project
 - [ ] 能否预测单张图片？
-- [ ] 构建一个简单地API接口
+- [ ] 构建一个简单的API接口
 - [ ] 进一步完善包导入
 - [ ] 完善使用文档
-- [ ] 设置训练epoch数量
-- [ ] 设置更多默认的数据集和模型(vgg, densenet等)
+- [x] 设置训练epoch数量
+- [X] 内建更多SOTA模型
+- [ ] 设置更多默认的数据集

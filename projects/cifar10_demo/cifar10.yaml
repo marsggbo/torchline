@@ -6,14 +6,34 @@ MODEL:
 DATASET:
     NAME: 'CIFAR10'
     DIR: './datasets/cifar10'
-    BATCH_SIZE: 32
+    BATCH_SIZE: 128
+OPTIM:
+    BASE_LR: 0.1
+    SCHEDULER:
+        NAME: 'MultiStepLR'
+        MILESTONES: [150, 250]
+        GAMMA: 0.1
 TRANSFORMS:
     TENSOR:
         NORMALIZATION: 
-            mean: [0.485, 0.456, 0.406]
-            std: [0.229, 0.224, 0.225]
+            mean: [0.4914, 0.4822, 0.4465]
+            std: [0.2023, 0.1994, 0.2010]
     IMG:
-        AUG_CIFAR: True
+        AUG_CIFAR: False
+        RESIZE:
+            enable: 0
+        RANDOM_CROP:
+            enable: 1
+            padding: 4
+        RANDOM_HORIZONTAL_FLIP:
+            enable: 1
+            p: 0.5
+        RANDOM_VERTICAL_FLIP:
+            enable: 0
+            p: 0.5
+        RANDOM_ROTATION:
+            enable: 0
+
 TRAINER:
     DEFAULT_SAVE_PATH: './output_cifar10'
     LOGGER:

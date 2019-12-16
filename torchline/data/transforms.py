@@ -58,6 +58,7 @@ class DefaultTransforms:
         self.mean = cfg.TRANSFORMS.TENSOR.NORMALIZATION.mean
         self.std = cfg.TRANSFORMS.TENSOR.NORMALIZATION.std
         self.img_size = cfg.INPUT.SIZE
+        self.padding = cfg.TRANSFORMS.IMG.RANDOM_CROP.padding
         self.min_edge_size = min(self.img_size)
         self.normalize = transforms.Normalize(self.mean, self.std)
         self.transform = self.get_transform()
@@ -66,35 +67,51 @@ class DefaultTransforms:
         # validation transform
         if not self.is_train: 
             logger_print.info('Generating validation transform ...')
-            transform = transforms.Compose([
-                transforms.Resize(self.img_size),
-                transforms.ToTensor(),
-                self.normalize
-            ])
-            return transform
+            transform = self.valid_transform
+            logger_print.info(f'Valid transform={transform}')
+        else:
+            logger_print.info('Generating training transform ...')
+            transform = self.train_transform
+            logger_print.info(f'Train transform={transform}')
+        return transform
 
-        logger_print.info('Generating training transform ...')
+
+    @property
+    def valid_transform(self):
+        transform = transforms.Compose([
+            transforms.Resize(self.img_size),
+            transforms.ToTensor(),
+            self.normalize
+        ])
+        return transform
+
+    @property
+    def train_transform(self):
+        # aug_imagenet
         if self.cfg.TRANSFORMS.IMG.AUG_IMAGENET:
             logger_print.info('Using imagenet augmentation')
             transform = transforms.Compose([
                 transforms.Resize(self.min_edge_size+1),
-                transforms.RandomCrop(self.min_edge_size),
+                transforms.RandomCrop(self.min_edge_size, padding=self.padding),
                 autoaugment.ImageNetPolicy(),
                 transforms.ToTensor(),
                 self.normalize
             ])
+        # aug cifar
         elif self.cfg.TRANSFORMS.IMG.AUG_CIFAR:
             logger_print.info('Using cifar augmentation')
             transform = transforms.Compose([
                 transforms.Resize(self.min_edge_size+1),
-                transforms.RandomCrop(self.min_edge_size),
+                transforms.RandomCrop(self.min_edge_size, padding=self.padding),
                 autoaugment.CIFAR10Policy(),
                 transforms.ToTensor(),
                 self.normalize
             ])
+        # customized transformations
         else:
             transform = self.read_transform_from_cfg()
         return transform
+
 
     def read_transform_from_cfg(self):
         transform_list = []
@@ -106,10 +123,10 @@ class DefaultTransforms:
             transform_list.append(transforms.RandomResizedCrop(self.img_size))
         elif img_transforms.RESIZE.enable:
             transform_list.append(transforms.Resize(self.min_edge_size))
-            if img_transforms.RANDOM_CROP.enable:
-                transform_list.append(transforms.RandomCrop(self.min_edge_size))
-            elif img_transforms.CENTER_CROP.enable:
-                transform_list.append(transforms.CenterCrop(self.min_edge_size))
+        if img_transforms.RANDOM_CROP.enable:
+            transform_list.append(transforms.RandomCrop(self.min_edge_size, padding=self.padding))
+        elif img_transforms.CENTER_CROP.enable:
+            transform_list.append(transforms.CenterCrop(self.min_edge_size))
 
         # ColorJitter
         if img_transforms.COLOR_JITTER.enable:
@@ -133,12 +150,14 @@ class DefaultTransforms:
             transform_list.append(transforms.RandomRotation(degrees))
         transform_list.append(transforms.ToTensor())
         transform_list.append(self.normalize)
-        return transforms.Compose(transform_list)
+        transform_list = transforms.Compose(transform_list)
+        assert len(transform_list.transforms) > 0, "You must apply transformations"
+        return transform_list
 
     def check_conflict_options(self):
         count = self.cfg.TRANSFORMS.IMG.RANDOM_RESIZED_CROP.enable + \
                 self.cfg.TRANSFORMS.IMG.RESIZE.enable
-        assert count == 1, 'You can only use one resize transform operation'
+        assert count <= 1, 'You can only use one resize transform operation'
 
         count = self.cfg.TRANSFORMS.IMG.RANDOM_CROP.enable + \
                 self.cfg.TRANSFORMS.IMG.CENTER_CROP.enable
