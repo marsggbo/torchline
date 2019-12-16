@@ -10,6 +10,14 @@ DATASET:
     VALID_LIST: '../datasets/skin100_test.txt'
     TEST_LIST: '../datasets/skin100_test.txt'
     BATCH_SIZE: 32
+
+OPTIM:
+    NAME: 'sgd'
+    BASE_LR: 0.1
+    SCHEDULER:
+        NAME: 'MultiStepLR'
+        MILESTONES: [30, 50, 70, 100]
+        GAMMA: 0.1
 TRANSFORMS:
     NAME: 'SkinTransforms'
     TENSOR:
@@ -19,14 +27,28 @@ TRANSFORMS:
     IMG:
         AUG_CIFAR: False
         COLOR_JITTER:
+            enable: 0
             brightness: 0.05
             contrast: 0.05
             saturation: 0.05
             hue: 0.05
+        RESIZE:
+            enable: 1
+        RANDOM_CROP:
+            enable: 1
+            padding: 4
+        RANDOM_HORIZONTAL_FLIP:
+            enable: 1
+            p: 0.5
+        RANDOM_VERTICAL_FLIP:
+            enable: 0
+            p: 0.5
+        RANDOM_ROTATION:
+            enable: 1
 TRAINER:
     DEFAULT_SAVE_PATH: './output_skin100'
     LOGGER:
-        SETTING: 0
+        SETTING: 2
         type: 'test_tube'
         MLFLOW:
             tracking_uri: './output_skin100' 
@@ -39,7 +61,7 @@ HOOKS:
         monitor: 'val_acc'
         mode: 'max'
     MODEL_CHECKPOINT:
-        type: 0
+        type: 2
         monitor: 'val_acc'
         mode: 'max'
         filepath: './output_skin100'

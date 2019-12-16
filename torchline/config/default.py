@@ -158,6 +158,7 @@ _C.OPTIM.SCHEDULER.MILESTONES = [10, 25, 35, 50]
 # ---------------------------------------------------------------------------- #
 _C.LOSS = CN()
 _C.LOSS.NAME = 'CrossEntropy'
+_C.LOSS.CLASS_WEIGHT = ''
 
 # ---------------------------------------------------------------------------- #
 # hooks
@@ -171,7 +172,7 @@ _C.HOOKS.EARLY_STOPPING.monitor = 'val_loss'
 _C.HOOKS.EARLY_STOPPING.min_delta = 0.
 _C.HOOKS.EARLY_STOPPING.patience = 10
 _C.HOOKS.EARLY_STOPPING.mode = 'min'
-_C.HOOKS.EARLY_STOPPING.verbose = True
+_C.HOOKS.EARLY_STOPPING.verbose = 1
 
 # ModelCheckpoint
 _C.HOOKS.MODEL_CHECKPOINT = CN()
@@ -179,6 +180,7 @@ _C.HOOKS.MODEL_CHECKPOINT.type = 0 # 0: True 1: False 2: custom
 _C.HOOKS.MODEL_CHECKPOINT.filepath = './output/checkpoints'
 _C.HOOKS.MODEL_CHECKPOINT.monitor = 'val_loss'
 _C.HOOKS.MODEL_CHECKPOINT.mode = 'min'
+_C.HOOKS.MODEL_CHECKPOINT.verbose = 1
 
 
 # ---------------------------------------------------------------------------- #

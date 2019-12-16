@@ -67,6 +67,33 @@ class MyTrainer(Trainer):
         if hparams.resume:
             resume_from_checkpoint = hparams.resume
         
+        # logger
+        LOGGER = self.cfg.TRAINER.LOGGER
+        if LOGGER.type == 'mlflow':
+            params = {key: LOGGER.MLFLOW[key] for key in LOGGER.MLFLOW}
+            custom_logger = MLFlowLogger(**params)
+        elif LOGGER.type == 'test_tube':
+            params = {key: LOGGER.TEST_TUBE[key] for key in LOGGER.TEST_TUBE}
+            save_dir = cfg.TRAINER.DEFAULT_SAVE_PATH
+            path = os.path.join(save_dir, LOGGER.TEST_TUBE.name)
+            if not os.path.exists(path):
+                version = 0
+            else:
+                paths = os.listdir(path)
+                version = len(paths)
+            if LOGGER.SETTING==2: params.update({'version': version, 'save_dir': save_dir})
+            custom_logger = TestTubeLogger(**params)
+        else:
+            print(f"{LOGGER.type} not supported")
+            raise NotImplementedError
+        
+        loggers = {
+            0: True,
+            1: False,
+            2: custom_logger
+        } # 0: True (default)  1: False  2: custom
+        logger = loggers[LOGGER.SETTING] 
+
         # hooks
         HOOKS = self.cfg.HOOKS
         params = {key: HOOKS.EARLY_STOPPING[key] for key in HOOKS.EARLY_STOPPING if key != 'type'}
@@ -79,6 +106,10 @@ class MyTrainer(Trainer):
         early_stop_callback = early_stop_callbacks[HOOKS.EARLY_STOPPING.type]
 
         params = {key: HOOKS.MODEL_CHECKPOINT[key] for key in HOOKS.MODEL_CHECKPOINT if key != 'type'}
+        if HOOKS.MODEL_CHECKPOINT.type==2 and LOGGER.SETTING==2:
+            filepath = os.path.join(cfg.TRAINER.DEFAULT_SAVE_PATH, logger.name,
+                            f'version_{logger.version}','checkpoints')
+            params.update({'filepath': filepath})
         checkpoint_callbacks = {
             0: True,
             1: False,
@@ -87,24 +118,6 @@ class MyTrainer(Trainer):
         assert HOOKS.MODEL_CHECKPOINT.type in checkpoint_callbacks, 'The type of model checkpoint_callback can only be in [0,1,2]'
         checkpoint_callback = checkpoint_callbacks[HOOKS.MODEL_CHECKPOINT.type]
         
-        # logger
-        LOGGER = self.cfg.TRAINER.LOGGER
-        if LOGGER.type == 'mlflow':
-            params = {key: LOGGER.MLFLOW[key] for key in LOGGER.MLFLOW}
-            custom_logger = MLFlowLogger(**params)
-        elif LOGGER.type == 'test_tube':
-            params = {key: LOGGER.TEST_TUBE[key] for key in LOGGER.TEST_TUBE}
-            custom_logger = TestTubeLogger(**params)
-        else:
-            print(f"{LOGGER.type} not supported")
-            raise NotImplementedError
-        
-        loggers = {
-            0: True,
-            1: False,
-            2: custom_logger
-        } # 0: True (default)  1: False  2: custom
-        logger = loggers[LOGGER.SETTING] 
 
         # you can update trainer_params to change different parameters
         self.trainer_params = {
