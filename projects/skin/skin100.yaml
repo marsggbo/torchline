@@ -10,7 +10,6 @@ DATASET:
     VALID_LIST: '../datasets/skin100_test.txt'
     TEST_LIST: '../datasets/skin100_test.txt'
     BATCH_SIZE: 32
-
 OPTIM:
     NAME: 'sgd'
     BASE_LR: 0.1
@@ -54,6 +53,8 @@ TRAINER:
             tracking_uri: './output_skin100' 
         TEST_TUBE:
             save_dir: './output_skin100'
+            name: torchline_log
+            version: -1
 HOOKS:
     EARLY_STOPPING:
         type: 2
@@ -65,3 +66,14 @@ HOOKS:
         monitor: 'val_acc'
         mode: 'max'
         filepath: './output_skin100'
+TOPK: [1, 5]
+PREDICT_ONLY:
+    type: 'ckpt'
+    to_pred_file_path: '' # specify the path of images
+    LOAD_CKPT:
+        checkpoint_path: '' # load_from_checkpoint
+    LOAD_METRIC:
+        weights_path: '' # load_from_metrics
+        tags_csv: ''
+        on_gpu: True
+        map_location: 'cuda:0'

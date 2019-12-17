@@ -8,6 +8,7 @@ DATASET:
     DIR: './datasets/cifar10'
     BATCH_SIZE: 128
 OPTIM:
+    NAME: 'sgd'
     BASE_LR: 0.1
     SCHEDULER:
         NAME: 'MultiStepLR'
@@ -33,7 +34,6 @@ TRANSFORMS:
             p: 0.5
         RANDOM_ROTATION:
             enable: 0
-
 TRAINER:
     DEFAULT_SAVE_PATH: './output_cifar10'
     LOGGER:
@@ -50,5 +50,18 @@ HOOKS:
         monitor: 'val_acc'
         mode: 'max'
     MODEL_CHECKPOINT:
-        type: 0
+        type: 2
+        monitor: 'val_acc'
+        mode: 'max'
         filepath: './output_cifar10'
+TOPK: [1, 3]
+PREDICT_ONLY:
+    type: 'ckpt'
+    to_pred_file_path: '' # specify the path of images
+    LOAD_CKPT:
+        checkpoint_path: '' # load_from_checkpoint
+    LOAD_METRIC:
+        weights_path: '' # load_from_metrics
+        tags_csv: ''
+        on_gpu: True
+        map_location: 'cuda:0'

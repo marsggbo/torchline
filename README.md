@@ -21,8 +21,8 @@ pip install -U torchline
 文件结构参照[detectron2](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwiux_PXpLDmAhVOPnAKHVTjDVEQFjAAegQIBxAC&url=https%3A%2F%2Fgithub.com%2Ffacebookresearch%2Fdetectron2&usg=AOvVaw25FixXG7GH7dRKY6sOc2Oc)设计,采用注册机制来实现不同模块的灵活切换。
 
 - `torchline`
-    - `config`: 参数设置模块
-        - `config.py`: 返回`CfgNode`
+    - `config`: Configuration Module
+        - `config.py`: return base `CfgNode`
         - `default.py`: 默认参数设置文件，后续可以通过导入`.yaml`文件来对指定参数做修改
     - `data`: 数据集模块，返回`torch.utils.data.Dataset`
         - `build.py`: 注册数据集，提供`build_data`函数来获取不同的数据集和数据集注册器
@@ -44,8 +44,8 @@ pip install -U torchline
       - `logger.py`: 输出日志模块
     - `main.py`: 代码运行入口，后面的项目构建都可以参照这个文件写代码
 - `tests`: 测试代码
-- `projects`: 新的项目可以在这里面创建，避免对`torchline`干扰
-    - `cifar10_demo`: 一个demo项目
+- `projects`: You can create your own project here.
+    - `cifar10_demo`: A CIFAR10 demo project
 
 
 # Run demo

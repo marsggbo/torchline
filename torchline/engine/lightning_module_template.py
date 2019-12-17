@@ -20,6 +20,7 @@ import torchvision
 from torchline.data import build_data, build_sampler
 from torchline.losses import build_loss_fn
 from torchline.models import build_model
+from torchline.utils import topk_acc
 from .build import MODULE_TEMPLATE_REGISTRY
 
 @MODULE_TEMPLATE_REGISTRY.register()
@@ -37,7 +38,7 @@ class LightningTemplateModel(LightningModule):
         super(LightningTemplateModel, self).__init__()
         self.cfg = cfg
         self.hparams = self.cfg.hparams
-
+        self.topk = cfg.TOPK
         self.batch_size = self.cfg.DATASET.BATCH_SIZE
 
         # if you specify an example input, the summary will show input/output for each layer
@@ -120,15 +121,16 @@ class LightningTemplateModel(LightningModule):
         loss_val = self.loss(predictions, gt_labels)
 
         # acc
-        predict_labels = torch.argmax(predictions, dim=1)
-        train_acc = torch.sum(gt_labels== predict_labels).item() / (len(gt_labels) * 1.0)
-        train_acc = torch.tensor(train_acc)
+        acc_results = topk_acc(predictions, gt_labels, self.topk)
+        tqdm_dict = {}
+        for i, k in enumerate(self.topk):
+            tqdm_dict[f'train_acc_{k}'] = acc_results[i]
 
         # in DP mode (default) make sure if result is scalar, there's another dim in the beginning
         if self.trainer.use_dp or self.trainer.use_ddp2:
             loss_val = loss_val.unsqueeze(0)
 
-        tqdm_dict = {'train_loss': loss_val, 'train_acc': train_acc}
+        tqdm_dict.update({'train_loss': loss_val})
         output = OrderedDict({
             'loss': loss_val,
             'progress_bar': tqdm_dict,
@@ -155,21 +157,22 @@ class LightningTemplateModel(LightningModule):
         loss_val = self.loss(predictions, gt_labels)
 
         # acc
-        predict_labels = torch.argmax(predictions, dim=1)
-        val_acc = torch.sum(gt_labels== predict_labels).item() / (len(gt_labels) * 1.0)
-        val_acc = torch.tensor(val_acc)
+        val_acc_1, val_acc_k = topk_acc(predictions, gt_labels, self.topk)
 
         if self.on_gpu:
-            val_acc = val_acc.cuda(loss_val.device.index)
+            val_acc_1 = val_acc_1.cuda(loss_val.device.index)
+            val_acc_k = val_acc_k.cuda(loss_val.device.index)
 
         # in DP mode (default) make sure if result is scalar, there's another dim in the beginning
         if self.trainer.use_dp or self.trainer.use_ddp2:
             loss_val = loss_val.unsqueeze(0)
-            val_acc = val_acc.unsqueeze(0)
-
+            val_acc_1 = val_acc_1.unsqueeze(0)
+            val_acc_k = val_acc_k.unsqueeze(0)
+        
         output = OrderedDict({
             'val_loss': loss_val,
-            'val_acc': val_acc,
+            'val_acc_1': val_acc_1,
+            f'val_acc_{self.topk[-1]}': val_acc_k,
         })
         if self.current_epoch==0 and batch_idx==0:
             if not os.path.exists('train_valid_samples'):
@@ -191,7 +194,8 @@ class LightningTemplateModel(LightningModule):
         # return torch.stack(outputs).mean()
 
         val_loss_mean = 0
-        val_acc_mean = 0
+        val_acc_1_mean = 0
+        val_acc_k_mean = 0
         for output in outputs:
             val_loss = output['val_loss']
 
@@ -201,17 +205,28 @@ class LightningTemplateModel(LightningModule):
             val_loss_mean += val_loss
 
             # reduce manually when using dp
-            val_acc = output['val_acc']
+            val_acc_1 = output['val_acc_1']
+            val_acc_k = output[f'val_acc_{self.topk[-1]}']
             if self.trainer.use_dp or self.trainer.use_ddp2:
-                val_acc = torch.mean(val_acc)
+                val_acc_1 = torch.mean(val_acc_1)
+                val_acc_k = torch.mean(val_acc_k)
 
-            val_acc_mean += val_acc
+            val_acc_1_mean += val_acc_1
+            val_acc_k_mean += val_acc_k
 
         val_loss_mean /= len(outputs)
-        val_acc_mean /= len(outputs)
-        tqdm_dict = {'val_loss': val_loss_mean, 'val_acc': val_acc_mean}
+        val_acc_1_mean /= len(outputs)
+        val_acc_k_mean /= len(outputs)
+        tqdm_dict = {'val_loss': val_loss_mean, 'val_acc_1': val_acc_1_mean, 
+                                                f'val_acc_{self.topk[-1]}': val_acc_k_mean}
         result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'val_loss': val_loss_mean}
         return result
+
+    def test_step(self, batch, batch_idx):
+        return self.validation_step(batch, batch_idx)
+    
+    def test_end(self, outputs):
+        return self.validation_end(outputs)
 
     # ---------------------
     # TRAINING SETUP
@@ -307,3 +322,11 @@ class LightningTemplateModel(LightningModule):
     def test_dataloader(self):
         logging.info('test data loader called')
         return self.__dataloader(is_train=False)
+
+    # @classmethod
+    # def load_from_checkpoint(cls, checkpoint_path):
+    #     checkpoint = torch.load(checkpoint_path, map_location=lambda storage, loc: storage)
+    #     model = cls(cls.cfg)
+    #     model.load_state_dict(checkpoint['state_dict'])
+    #     model.on_load_checkpoint(checkpoint)
+    #     return model

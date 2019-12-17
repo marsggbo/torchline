@@ -32,6 +32,7 @@ def setup(args):
     """
     Create configs and perform basic setups.
     """
+    assert not (args.test_only and args.predict_only), "You can't set both 'test_only' and 'predict_only' True"
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
     add_skin_config(cfg)
@@ -50,7 +51,7 @@ def setup(args):
     torch.manual_seed(SEED)
     np.random.seed(SEED)
 
-    if not (hasattr(args, "test_only") and args.test_only):
+    if not (args.test_only or args.predict_only):
         torch.backends.cudnn.benchmark = False
     else:
         torch.backends.cudnn.benchmark = cfg.DEFAULT_CUDNN_BENCHMARK
@@ -75,12 +76,17 @@ class MyTrainer(Trainer):
         elif LOGGER.type == 'test_tube':
             params = {key: LOGGER.TEST_TUBE[key] for key in LOGGER.TEST_TUBE}
             save_dir = cfg.TRAINER.DEFAULT_SAVE_PATH
-            path = os.path.join(save_dir, LOGGER.TEST_TUBE.name)
-            if not os.path.exists(path):
-                version = 0
+            if LOGGER.TEST_TUBE.version<0:
+                # iteratively search the next version
+                path = os.path.join(save_dir, LOGGER.TEST_TUBE.name)
+                if not os.path.exists(path):
+                    version = 0
+                else:
+                    paths = os.listdir(path)
+                    version = len(paths)
             else:
-                paths = os.listdir(path)
-                version = len(paths)
+                # setting the specified version
+                version = int(LOGGER.TEST_TUBE.version)
             if LOGGER.SETTING==2: params.update({'version': version, 'save_dir': save_dir})
             custom_logger = TestTubeLogger(**params)
         else:
@@ -156,27 +162,42 @@ def main(hparams):
     """
 
     cfg = setup(hparams)
+    if cfg.MODEL.CLASSES == 10:
+        classes = np.loadtxt('skin10_class_names.txt', dtype=str)
+    else:
+        classes = np.loadtxt('skin100_class_names.txt', dtype=str)
 
-    if hasattr(hparams, "test_only") and hparams.test_only:
-        load_params = {key: cfg.TEST_ONLY[key] \
-                    for key in cfg.TEST_ONLY \
-                    if key not in ['test_file_paths', 'type']}
-        if cfg.TEST_ONLY.type == 'ckpt':
-            model = build_module_template(cfg).load_from_checkpoint(**load_params)
-        elif cfg.TEST_ONLY.type == 'metrics':
+    # only predict on some samples
+    if hasattr(hparams, "predict_only") and hparams.predict_only:
+        PREDICT_ONLY = cfg.PREDICT_ONLY
+        if PREDICT_ONLY.type == 'ckpt':
+            load_params = {key: PREDICT_ONLY.LOAD_CKPT[key] for key in PREDICT_ONLY.LOAD_CKPT}
+            model = build_module_template(cfg)
+            ckpt_path = load_params['checkpoint_path']
+            model.load_state_dict(torch.load(ckpt_path)['state_dict'])
+        elif PREDICT_ONLY.type == 'metrics':
+            load_params = {key: PREDICT_ONLY.LOAD_METRIC[key] for key in PREDICT_ONLY.LOAD_METRIC}
             model = build_module_template(cfg).load_from_metrics(**load_params)
         else:
-            print(f'{cfg.TEST_ONLY.type} not supported')
+            print(f'{cfg.PREDICT_ONLY.type} not supported')
             raise NotImplementedError
 
         model.eval()
         model.freeze() 
-        images = get_imgs_to_predict(cfg.TEST_ONLY.test_file_paths, cfg)
+        images = get_imgs_to_predict(cfg.PREDICT_ONLY.to_pred_file_path, cfg)
         if torch.cuda.is_available():
-            images = images.cuda()
+            images['img_data'] = images['img_data'].cuda()
             model = model.cuda()
-        predictions = model(images)
+        predictions = model(images['img_data'])
+        class_indices = torch.argmax(predictions, dim=1)
+        for i, file in enumerate(images['img_file']):
+            index = class_indices[i]
+            print(f"{file} is {classes[index]}")
         return predictions.cpu()
+    elif hasattr(hparams, "test_only") and hparams.test_only:
+        model = build_module_template(cfg)
+        trainer = MyTrainer(cfg, hparams)
+        trainer.test(model)
     else:
         model = build_module_template(cfg)
         trainer = MyTrainer(cfg, hparams)
@@ -226,7 +247,12 @@ if __name__ == '__main__':
     parent_parser.add_argument(
         '--test_only',
         action='store_true',
-        help='if true run trainer.test(model)'
+        help='if true, return trainer.test(model). Validates only the test set'
+    )
+    parent_parser.add_argument(
+        '--predict_only',
+        action='store_true',
+        help='if true run model(samples). Predict on the given samples.'
     )
     parent_parser.add_argument(
         "opts",

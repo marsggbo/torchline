@@ -29,13 +29,21 @@
 - 更新package版本至`torchline-0.1.3`
 - 更新transforms类结构，可以更加方便的自定义修改
 
+### 2019.12.17更新信息
+- 可单独预测指定路径下的图片，`predict_only`模式，
+- 完成`test_only`模式
+- 新增topk结果显示
+- 支持restore training
+> 详细细节可查看[project/skin/ReadMe.md](projects/skin/ReadMe.md)
+
+
 ### todo list
 
 - [x] 弄清楚logging机制
 - [x] save和load模型，优化器参数
 - [x] skin数据集读取测试
 - [x] 构建skin project
-- [ ] 能否预测单张图片？
+- [x] 能否预测单张图片？
 - [ ] 构建一个简单的API接口
 - [ ] 进一步完善包导入
 - [ ] 完善使用文档

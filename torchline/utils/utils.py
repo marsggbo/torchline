@@ -1,3 +1,4 @@
+import glob
 import os
 
 import torch
@@ -14,8 +15,8 @@ def image_loader(filename, cfg):
         torch.tensor
     '''
     image = Image.open(filename).convert('RGB')
-    mean = cfg.TRANSFORMS.NORMALIZATION.MEAN
-    std = cfg.TRANSFORMS.NORMALIZATION.STD
+    mean = cfg.TRANSFORMS.TENSOR.NORMALIZATION.mean
+    std = cfg.TRANSFORMS.TENSOR.NORMALIZATION.std
     img_size = cfg.INPUT.SIZE
 
     transform = transforms.Compose([
@@ -33,11 +34,34 @@ def get_imgs_to_predict(path, cfg):
     return:
         torch.tensor (N*C*H*W)
     '''
-    if os.path.isfile(path, cfg):
+    if os.path.isfile(path):
         images = image_loader(path, cfg).unsqueeze(0)
-    elif os.path.isdir(path, cfg):
-        images = []
-        for _path in path:
-            images.append(image_loader(_path, cfg))
-        images = torch.stack(images)
+    elif os.path.isdir(path):
+        image_types = [os.path.join(path,'*.jpg'), os.path.join(path,'*.png')]
+        image_files = []
+        images = {
+            'img_file': [],
+            'img_data': []
+        }
+        for img_type in image_types:
+            image_files.extend(glob.glob(img_type))
+        for img_file in image_files:
+            images['img_file'].append(img_file)
+            images['img_data'].append(image_loader(img_file, cfg))
+        images['img_data'] = torch.stack(images['img_data'])
     return images
+
+def topk_acc(output, target, topk=(1, 3)):
+    """Computes the precision@k for the specified values of k"""
+    maxk = max(topk)
+
+    _, pred = output.topk(maxk, 1, True, True)
+    pred = pred.t()
+    correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+    res = []
+    for k in topk:
+        correct_k = correct[:k].view(-1).float().sum(0)
+        res.append(correct_k*100.0/len(target.view(-1)))
+        # res.append(correct_k.mul_(100.0 / batch_size))
+    return torch.tensor(res)

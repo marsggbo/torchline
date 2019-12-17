@@ -15,12 +15,14 @@ from pytorch_lightning.logging import TestTubeLogger, MLFlowLogger
 
 from torchline.config import get_cfg
 from torchline.engine import build_module_template
-from torchline.utils import Logger
+from torchline.utils import Logger, get_imgs_to_predict
 
 logger_print = Logger(__name__).getlog()
 SEED = 2334
 torch.manual_seed(SEED)
 np.random.seed(SEED)
+
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 def parse_cfg_param(cfg_item):
     return cfg_item if cfg_item else None
@@ -29,6 +31,7 @@ def setup(args):
     """
     Create configs and perform basic setups.
     """
+    assert not (args.test_only and args.predict_only), "You can't set both 'test_only' and 'predict_only' True"
     cfg = get_cfg()
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
@@ -43,11 +46,11 @@ def setup(args):
         )
         
 
-    if not (hasattr(args, "test_only") and args.test_only):
+    if not (args.test_only or args.predict_only):
         torch.backends.cudnn.benchmark = False
     else:
         torch.backends.cudnn.benchmark = cfg.DEFAULT_CUDNN_BENCHMARK
-    
+
     logger_print.info("Running with full config:\n{}".format(cfg))
     return cfg
 
@@ -59,26 +62,6 @@ class MyTrainer(Trainer):
         if hparams.resume:
             resume_from_checkpoint = hparams.resume
         
-        # hooks
-        HOOKS = self.cfg.HOOKS
-        params = {key: HOOKS.EARLY_STOPPING[key] for key in HOOKS.EARLY_STOPPING if key != 'type'}
-        early_stop_callbacks = {
-            0: True,  # default setting
-            1: False, # do not use early stopping
-            2: EarlyStopping(**params) # use custom setting
-        }
-        assert HOOKS.EARLY_STOPPING.type in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
-        early_stop_callback = early_stop_callbacks[HOOKS.EARLY_STOPPING.type]
-
-        params = {key: HOOKS.MODEL_CHECKPOINT[key] for key in HOOKS.MODEL_CHECKPOINT if key != 'type'}
-        checkpoint_callbacks = {
-            0: True,
-            1: False,
-            2: ModelCheckpoint(**params)
-        }
-        assert HOOKS.MODEL_CHECKPOINT.type in checkpoint_callbacks, 'The type of model checkpoint_callback can only be in [0,1,2]'
-        checkpoint_callback = checkpoint_callbacks[HOOKS.MODEL_CHECKPOINT.type]
-
         # logger
         LOGGER = self.cfg.TRAINER.LOGGER
         if LOGGER.type == 'mlflow':
@@ -86,6 +69,19 @@ class MyTrainer(Trainer):
             custom_logger = MLFlowLogger(**params)
         elif LOGGER.type == 'test_tube':
             params = {key: LOGGER.TEST_TUBE[key] for key in LOGGER.TEST_TUBE}
+            save_dir = cfg.TRAINER.DEFAULT_SAVE_PATH
+            if LOGGER.TEST_TUBE.version<0:
+                # iteratively search the next version
+                path = os.path.join(save_dir, LOGGER.TEST_TUBE.name)
+                if not os.path.exists(path):
+                    version = 0
+                else:
+                    paths = os.listdir(path)
+                    version = len(paths)
+            else:
+                # setting the specified version
+                version = int(LOGGER.TEST_TUBE.version)
+            if LOGGER.SETTING==2: params.update({'version': version, 'save_dir': save_dir})
             custom_logger = TestTubeLogger(**params)
         else:
             print(f"{LOGGER.type} not supported")
@@ -98,6 +94,29 @@ class MyTrainer(Trainer):
         } # 0: True (default)  1: False  2: custom
         logger = loggers[LOGGER.SETTING] 
 
+        # hooks
+        HOOKS = self.cfg.HOOKS
+        params = {key: HOOKS.EARLY_STOPPING[key] for key in HOOKS.EARLY_STOPPING if key != 'type'}
+        early_stop_callbacks = {
+            0: True,  # default setting
+            1: False, # do not use early stopping
+            2: EarlyStopping(**params) # use custom setting
+        }
+        assert HOOKS.EARLY_STOPPING.type in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
+        early_stop_callback = early_stop_callbacks[HOOKS.EARLY_STOPPING.type]
+
+        params = {key: HOOKS.MODEL_CHECKPOINT[key] for key in HOOKS.MODEL_CHECKPOINT if key != 'type'}
+        if HOOKS.MODEL_CHECKPOINT.type==2 and LOGGER.SETTING==2:
+            filepath = os.path.join(cfg.TRAINER.DEFAULT_SAVE_PATH, logger.name,
+                            f'version_{logger.version}','checkpoints')
+            params.update({'filepath': filepath})
+        checkpoint_callbacks = {
+            0: True,
+            1: False,
+            2: ModelCheckpoint(**params)
+        }
+        assert HOOKS.MODEL_CHECKPOINT.type in checkpoint_callbacks, 'The type of model checkpoint_callback can only be in [0,1,2]'
+        checkpoint_callback = checkpoint_callbacks[HOOKS.MODEL_CHECKPOINT.type]
 
         # you can update trainer_params to change different parameters
         self.trainer_params = {
@@ -135,21 +154,41 @@ def main(hparams):
     """
 
     cfg = setup(hparams)
+    # only predict on some samples
+    if hasattr(hparams, "predict_only") and hparams.predict_only:
+        PREDICT_ONLY = cfg.PREDICT_ONLY
+        if PREDICT_ONLY.type == 'ckpt':
+            load_params = {key: PREDICT_ONLY.LOAD_CKPT[key] for key in PREDICT_ONLY.LOAD_CKPT}
+            model = build_module_template(cfg)
+            ckpt_path = load_params['checkpoint_path']
+            model.load_state_dict(torch.load(ckpt_path)['state_dict'])
+        elif PREDICT_ONLY.type == 'metrics':
+            load_params = {key: PREDICT_ONLY.LOAD_METRIC[key] for key in PREDICT_ONLY.LOAD_METRIC}
+            model = build_module_template(cfg).load_from_metrics(**load_params)
+        else:
+            print(f'{cfg.PREDICT_ONLY.type} not supported')
+            raise NotImplementedError
 
-    # ------------------------
-    # 1 INIT LIGHTNING MODEL
-    # ------------------------
-    model = build_module_template(cfg)
-
-    # ------------------------
-    # 2 INIT TRAINER
-    # ------------------------
-    trainer = MyTrainer(cfg, hparams)
-
-    # ------------------------
-    # 3 START TRAINING
-    # ------------------------
-    trainer.fit(model)
+        model.eval()
+        model.freeze() 
+        images = get_imgs_to_predict(cfg.PREDICT_ONLY.to_pred_file_path, cfg)
+        if torch.cuda.is_available():
+            images['img_data'] = images['img_data'].cuda()
+            model = model.cuda()
+        predictions = model(images['img_data'])
+        class_indices = torch.argmax(predictions, dim=1)
+        for i, file in enumerate(images['img_file']):
+            index = class_indices[i]
+            print(f"{file} is {classes[index]}")
+        return predictions.cpu()
+    elif hasattr(hparams, "test_only") and hparams.test_only:
+        model = build_module_template(cfg)
+        trainer = MyTrainer(cfg, hparams)
+        trainer.test(model)
+    else:
+        model = build_module_template(cfg)
+        trainer = MyTrainer(cfg, hparams)
+        trainer.fit(model)
 
 
 if __name__ == '__main__':
@@ -191,6 +230,16 @@ if __name__ == '__main__':
         dest='use_16bit',
         action='store_true',
         help='if true uses 16 bit precision'
+    )
+    parent_parser.add_argument(
+        '--test_only',
+        action='store_true',
+        help='if true, return trainer.test(model). Validates only the test set'
+    )
+    parent_parser.add_argument(
+        '--predict_only',
+        action='store_true',
+        help='if true run model(samples). Predict on the given samples.'
     )
     parent_parser.add_argument(
         "opts",

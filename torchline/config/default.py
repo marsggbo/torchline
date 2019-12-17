@@ -205,6 +205,7 @@ _C.TRAINER.LOG_SAVE_INTERVAL = 100 # Every k batches, lightning will write the n
 _C.TRAINER.DEFAULT_SAVE_PATH = './output'
 _C.TRAINER.LOG_GPU_MEMORY = "" # 'min_max': log only the min/max utilization
 _C.TRAINER.FAST_DEV_RUN = False # everything only with 1 training and 1 validation batch.
+
 _C.TRAINER.LOGGER = CN()
 _C.TRAINER.LOGGER.SETTING = 0 # 0: True  1: False  2: custom
 _C.TRAINER.LOGGER.type = 'mlflow'
@@ -215,6 +216,7 @@ _C.TRAINER.LOGGER.TEST_TUBE = CN()
 _C.TRAINER.LOGGER.TEST_TUBE.name = 'torchline_logs'
 _C.TRAINER.LOGGER.TEST_TUBE.save_dir = _C.TRAINER.DEFAULT_SAVE_PATH
 _C.TRAINER.LOGGER.TEST_TUBE.debug = False
+_C.TRAINER.LOGGER.TEST_TUBE.version = -1 # if specified, it will restore the version. starting from 0
 
 
 # ---------------------------------------------------------------------------- #
@@ -230,12 +232,19 @@ _C.LOG.NAME = 'log.txt'
 
 _C.SEED = 666
 _C.DEFAULT_CUDNN_BENCHMARK = True
-_C.TEST_ONLY = CN()
-_C.TEST_ONLY.type = 'ckpt'
-_C.TEST_ONLY.checkpoint_path = '' # load_from_checkpoint
-_C.TEST_ONLY.weights_path = '' # load_from_metrics
-_C.TEST_ONLY.tags_csv = ''
-_C.TEST_ONLY.on_gpu = True
-_C.TEST_ONLY.map_location = 'cuda:0'
-_C.TEST_ONLY.test_file_path = '' # specify the path of images
+
+_C.TOPK = [1, 3] # save the top k results., e.g. acc@1 and acc@3
+
+_C.PREDICT_ONLY = CN()
+_C.PREDICT_ONLY.type = 'ckpt'
+_C.PREDICT_ONLY.to_pred_file_path = '' # specify the path of images
+
+_C.PREDICT_ONLY.LOAD_CKPT = CN() # load from checkpoint
+_C.PREDICT_ONLY.LOAD_CKPT.checkpoint_path = '' # load_from_checkpoint
+
+_C.PREDICT_ONLY.LOAD_METRIC = CN()
+_C.PREDICT_ONLY.LOAD_METRIC.weights_path = '' # load_from_metrics
+_C.PREDICT_ONLY.LOAD_METRIC.tags_csv = ''
+_C.PREDICT_ONLY.LOAD_METRIC.on_gpu = True
+_C.PREDICT_ONLY.LOAD_METRIC.map_location = 'cuda:0'
 
