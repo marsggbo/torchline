@@ -9,6 +9,9 @@ __all__ = [
 @LOSS_FN_REGISTRY.register()
 def CrossEntropy(cfg):
     weight = cfg.LOSS.CLASS_WEIGHT
-    if not weight:
+    if weight in ['', None, []]:
         weight = None
+    else:
+        weight = torch.tensor(weight)
+        if torch.cuda.is_available(): weight=weight.cuda()
     return torch.nn.CrossEntropyLoss(weight=weight)

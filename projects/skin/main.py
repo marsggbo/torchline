@@ -162,10 +162,6 @@ def main(hparams):
     """
 
     cfg = setup(hparams)
-    if cfg.MODEL.CLASSES == 10:
-        classes = np.loadtxt('skin10_class_names.txt', dtype=str)
-    else:
-        classes = np.loadtxt('skin100_class_names.txt', dtype=str)
 
     # only predict on some samples
     if hasattr(hparams, "predict_only") and hparams.predict_only:
@@ -188,6 +184,10 @@ def main(hparams):
         if torch.cuda.is_available():
             images['img_data'] = images['img_data'].cuda()
             model = model.cuda()
+        if cfg.MODEL.CLASSES == 10:
+            classes = np.loadtxt('skin10_class_names.txt', dtype=str)
+        else:
+            classes = np.loadtxt('skin100_class_names.txt', dtype=str)
         predictions = model(images['img_data'])
         class_indices = torch.argmax(predictions, dim=1)
         for i, file in enumerate(images['img_file']):

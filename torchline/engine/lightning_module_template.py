@@ -47,7 +47,6 @@ class LightningTemplateModel(LightningModule):
 
         # build model
         self.model = self.build_model(cfg)
-        self.loss_fn = self.build_loss_fn(cfg)
 
     # ---------------------
     # MODEL SETUP
@@ -105,7 +104,8 @@ class LightningTemplateModel(LightningModule):
         return logits
 
     def loss(self, predictions, gt_labels):
-        return self.loss_fn(predictions, gt_labels)
+        loss_fn = self.build_loss_fn(self.cfg)
+        return loss_fn(predictions, gt_labels)
 
     def training_step(self, batch, batch_idx):
         """
