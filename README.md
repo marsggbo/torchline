@@ -12,6 +12,9 @@ Easy to use Pytorch
 
 # Install
 
+- Before you install `torchline`, please make sure you have installed the above libraries.
+- Only support on Linux
+
 ```bash
 pip install -U torchline
 ```
