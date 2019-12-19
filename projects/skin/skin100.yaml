@@ -74,8 +74,8 @@ TRAINER:
             tracking_uri: './output_skin100' 
         TEST_TUBE:
             save_dir: './output_skin100'
-            name: torchline_log
-            version: -1
+            name: 'torchline_logs'
+            version: -1 # if <0, then use default version
 HOOKS:
     EARLY_STOPPING:
         type: 2
@@ -86,7 +86,7 @@ HOOKS:
         type: 2
         monitor: 'val_acc_1'
         mode: 'max'
-        filepath: './output_skin100'
+        filepath: '' # please do not specify
 TOPK: [1, 5]
 PREDICT_ONLY:
     type: 'ckpt'

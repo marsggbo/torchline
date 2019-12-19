@@ -36,6 +36,8 @@
 - 支持restore training
 > 详细细节可查看[project/skin/ReadMe.md](projects/skin/ReadMe.md)
 
+### 2019.12.19更新信息
+- 修改各种路径参数设置逻辑（详见[skin/ReadMe.md](projects/skin/ReadMe.md)）
 
 ### todo list
 

@@ -43,17 +43,19 @@ TRAINER:
             tracking_uri: './output_cifar10' 
         TEST_TUBE:
             save_dir: './output_cifar10'
+            name: 'torchline_logs'
+            version: -1 # if <0, then use default version
 HOOKS:
     EARLY_STOPPING:
         type: 2
         patience: 20
-        monitor: 'val_acc'
+        monitor: 'val_acc_1'
         mode: 'max'
     MODEL_CHECKPOINT:
         type: 2
-        monitor: 'val_acc'
+        monitor: 'val_acc_1'
         mode: 'max'
-        filepath: './output_cifar10'
+        filepath: ''
 TOPK: [1, 3]
 PREDICT_ONLY:
     type: 'ckpt'

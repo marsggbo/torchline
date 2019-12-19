@@ -1,27 +1,24 @@
 """
 Runs a model on a single node across N-gpus.
 """
-import sys
-# sys.path.append('../..')
 import argparse
+import glob
 import os
+import shutil
+import sys
 from argparse import ArgumentParser
 
 import numpy as np
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning.logging import TestTubeLogger, MLFlowLogger
+from pytorch_lightning.logging import MLFlowLogger, TestTubeLogger
 
 from torchline.config import get_cfg
 from torchline.engine import build_module_template
 from torchline.utils import Logger, get_imgs_to_predict
 
 logger_print = Logger(__name__).getlog()
-SEED = 2334
-torch.manual_seed(SEED)
-np.random.seed(SEED)
-
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 def parse_cfg_param(cfg_item):
@@ -58,65 +55,13 @@ class MyTrainer(Trainer):
     def __init__(self, cfg, hparams):
         self.cfg = cfg
         self.hparams = hparams
-        resume_from_checkpoint = None 
+        self.resume_from_checkpoint = None 
         if hparams.resume:
-            resume_from_checkpoint = hparams.resume
-        
-        # logger
-        LOGGER = self.cfg.TRAINER.LOGGER
-        if LOGGER.type == 'mlflow':
-            params = {key: LOGGER.MLFLOW[key] for key in LOGGER.MLFLOW}
-            custom_logger = MLFlowLogger(**params)
-        elif LOGGER.type == 'test_tube':
-            params = {key: LOGGER.TEST_TUBE[key] for key in LOGGER.TEST_TUBE}
-            save_dir = cfg.TRAINER.DEFAULT_SAVE_PATH
-            if LOGGER.TEST_TUBE.version<0:
-                # iteratively search the next version
-                path = os.path.join(save_dir, LOGGER.TEST_TUBE.name)
-                if not os.path.exists(path):
-                    version = 0
-                else:
-                    paths = os.listdir(path)
-                    version = len(paths)
-            else:
-                # setting the specified version
-                version = int(LOGGER.TEST_TUBE.version)
-            if LOGGER.SETTING==2: params.update({'version': version, 'save_dir': save_dir})
-            custom_logger = TestTubeLogger(**params)
-        else:
-            print(f"{LOGGER.type} not supported")
-            raise NotImplementedError
-        
-        loggers = {
-            0: True,
-            1: False,
-            2: custom_logger
-        } # 0: True (default)  1: False  2: custom
-        logger = loggers[LOGGER.SETTING] 
+            self.resume_from_checkpoint = hparams.resume
 
-        # hooks
-        HOOKS = self.cfg.HOOKS
-        params = {key: HOOKS.EARLY_STOPPING[key] for key in HOOKS.EARLY_STOPPING if key != 'type'}
-        early_stop_callbacks = {
-            0: True,  # default setting
-            1: False, # do not use early stopping
-            2: EarlyStopping(**params) # use custom setting
-        }
-        assert HOOKS.EARLY_STOPPING.type in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
-        early_stop_callback = early_stop_callbacks[HOOKS.EARLY_STOPPING.type]
-
-        params = {key: HOOKS.MODEL_CHECKPOINT[key] for key in HOOKS.MODEL_CHECKPOINT if key != 'type'}
-        if HOOKS.MODEL_CHECKPOINT.type==2 and LOGGER.SETTING==2:
-            filepath = os.path.join(cfg.TRAINER.DEFAULT_SAVE_PATH, logger.name,
-                            f'version_{logger.version}','checkpoints')
-            params.update({'filepath': filepath})
-        checkpoint_callbacks = {
-            0: True,
-            1: False,
-            2: ModelCheckpoint(**params)
-        }
-        assert HOOKS.MODEL_CHECKPOINT.type in checkpoint_callbacks, 'The type of model checkpoint_callback can only be in [0,1,2]'
-        checkpoint_callback = checkpoint_callbacks[HOOKS.MODEL_CHECKPOINT.type]
+        self.logger = self._logger()
+        self.early_stop_callback = self._early_stop_callback()
+        self.checkpoint_callback = self._checkpoint_callback()
 
         # you can update trainer_params to change different parameters
         self.trainer_params = {
@@ -134,17 +79,111 @@ class MyTrainer(Trainer):
             'default_save_path' : cfg.TRAINER.DEFAULT_SAVE_PATH,
             'fast_dev_run' : cfg.TRAINER.FAST_DEV_RUN,
 
-            'logger': logger,
-            'early_stop_callback': early_stop_callback,
-            'checkpoint_callback': checkpoint_callback,
+            'logger': self.logger,
+            'early_stop_callback': self.early_stop_callback,
+            'checkpoint_callback': self.checkpoint_callback,
+            'resume_from_checkpoint': self.resume_from_checkpoint,
 
             'weights_summary': None,
-            'resume_from_checkpoint': resume_from_checkpoint
         }
 
-        super(MyTrainer, self).__init__(
-            **self.trainer_params
-        )
+        super(MyTrainer, self).__init__(**self.trainer_params)
+    
+    def _logger(self):
+        def _version_logger(save_dir, logger_name):
+            path = os.path.join(save_dir, logger_name)
+            if (not os.path.exists(path)) or len(os.listdir(path))==0:
+                version = 0
+            else:
+                versions = [int(v.split('_')[-1]) for v in os.listdir(path)]
+                version = max(versions)+1
+            return version
+
+        # logger
+        LOGGER = self.cfg.TRAINER.LOGGER
+        assert LOGGER.SETTING in [0,1,2], "You can only set three logger levels [0,1,2], but you set {}".format(LOGGER.SETTING)
+        if LOGGER.type == 'mlflow':
+            params = {key: LOGGER.MLFLOW[key] for key in LOGGER.MLFLOW}
+            custom_logger = MLFlowLogger(**params)
+        elif LOGGER.type == 'test_tube':
+            params = {key: LOGGER.TEST_TUBE[key] for key in LOGGER.TEST_TUBE} # key: save_dir, name, version
+
+            # save_dir: logger root path: 
+            if self.cfg.TRAINER.DEFAULT_SAVE_PATH:
+                save_dir = self.cfg.TRAINER.DEFAULT_SAVE_PATH
+            else:
+                save_dir = LOGGER.TEST_TUBE.save_dir
+            
+            # version
+            if LOGGER.SETTING==0:
+                version = _version_logger(save_dir, 'torchline_logs')
+            elif LOGGER.SETTING==2:
+                if LOGGER.TEST_TUBE.version<0:
+                    version = _version_logger(save_dir, LOGGER.TEST_TUBE.name)
+                else:
+                    version = int(LOGGER.TEST_TUBE.version)
+            else:
+                return False
+
+            default_logger = TestTubeLogger(save_dir, name='torchline_logs', version=version)
+            params.update({'version': version, 'save_dir': save_dir})
+            custom_logger = TestTubeLogger(**params)
+        else:
+            print(f"{LOGGER.type} not supported")
+            raise NotImplementedError
+        
+        loggers = {
+            0: default_logger,
+            1: False,
+            2: custom_logger
+        } # 0: True (default)  1: False  2: custom
+        logger = loggers[LOGGER.SETTING]
+
+        # copy config file to the logger directory
+        if LOGGER.SETTING!=1:
+            src_cfg_file = self.hparams.config_file # source config file
+            cfg_file_name = os.path.basename(src_cfg_file) # config file name
+            dst_cfg_file = os.path.join(self.cfg.TRAINER.DEFAULT_SAVE_PATH, logger.name, f"version_{logger.version}")
+            if not os.path.exists(dst_cfg_file):
+                os.makedirs(dst_cfg_file)
+            dst_cfg_file = os.path.join(dst_cfg_file, cfg_file_name)
+            shutil.copy(src_cfg_file, dst_cfg_file)
+        return logger
+
+    def _early_stop_callback(self):
+        # early_stop_callback hooks
+        HOOKS = self.cfg.HOOKS
+        params = {key: HOOKS.EARLY_STOPPING[key] for key in HOOKS.EARLY_STOPPING if key != 'type'}
+        early_stop_callbacks = {
+            0: True,  # default setting
+            1: False, # do not use early stopping
+            2: EarlyStopping(**params) # use custom setting
+        }
+        assert HOOKS.EARLY_STOPPING.type in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
+        early_stop_callback = early_stop_callbacks[HOOKS.EARLY_STOPPING.type]
+        return early_stop_callback
+
+    def _checkpoint_callback(self):
+        # checkpoint_callback hooks
+        HOOKS = self.cfg.HOOKS
+        assert HOOKS.MODEL_CHECKPOINT.type in [0,1,2], "You can only set three ckpt levels [0,1,2], but you set {}".format(HOOKS.MODEL_CHECKPOINT.type)
+
+        logger = self.logger
+        params = {key: HOOKS.MODEL_CHECKPOINT[key] for key in HOOKS.MODEL_CHECKPOINT if key != 'type'}
+        if HOOKS.MODEL_CHECKPOINT.type==2:
+            if HOOKS.MODEL_CHECKPOINT.filepath.strip()=='':
+                filepath = os.path.join(self.cfg.TRAINER.DEFAULT_SAVE_PATH, logger.name,
+                                f'version_{logger.version}','checkpoints')
+                params.update({'filepath': filepath})
+            else:
+                logger_print.warn("The specified checkpoint path is not recommended!")
+        checkpoint_callbacks = {
+            0: True,
+            1: False,
+            2: ModelCheckpoint(**params)
+        }
+        checkpoint_callback = checkpoint_callbacks[HOOKS.MODEL_CHECKPOINT.type]
+        return checkpoint_callback
     
 
 def main(hparams):

@@ -177,7 +177,7 @@ _C.HOOKS.EARLY_STOPPING.verbose = 1
 # ModelCheckpoint
 _C.HOOKS.MODEL_CHECKPOINT = CN()
 _C.HOOKS.MODEL_CHECKPOINT.type = 0 # 0: True 1: False 2: custom
-_C.HOOKS.MODEL_CHECKPOINT.filepath = './output/checkpoints'
+_C.HOOKS.MODEL_CHECKPOINT.filepath = '' # the empty file path is recommended
 _C.HOOKS.MODEL_CHECKPOINT.monitor = 'val_loss'
 _C.HOOKS.MODEL_CHECKPOINT.mode = 'min'
 _C.HOOKS.MODEL_CHECKPOINT.verbose = 1
@@ -216,7 +216,7 @@ _C.TRAINER.LOGGER.TEST_TUBE = CN()
 _C.TRAINER.LOGGER.TEST_TUBE.name = 'torchline_logs'
 _C.TRAINER.LOGGER.TEST_TUBE.save_dir = _C.TRAINER.DEFAULT_SAVE_PATH
 _C.TRAINER.LOGGER.TEST_TUBE.debug = False
-_C.TRAINER.LOGGER.TEST_TUBE.version = -1 # if specified, it will restore the version. starting from 0
+_C.TRAINER.LOGGER.TEST_TUBE.version = -1 #  # if <0, then use default version. Otherwise, it will restore the version.
 
 
 # ---------------------------------------------------------------------------- #
