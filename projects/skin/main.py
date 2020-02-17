@@ -77,15 +77,15 @@ class MyTrainer(Trainer):
             'use_amp': hparams.use_16bit,
             'distributed_backend': hparams.distributed_backend,
 
-            'min_epochs' : cfg.TRAINER.MIN_EPOCHS,
-            'max_epochs' : cfg.TRAINER.MAX_EPOCHS,
-            'gradient_clip_val' : cfg.TRAINER.GRAD_CLIP_VAL,
-            'show_progress_bar' : cfg.TRAINER.SHOW_PROGRESS_BAR,
-            'row_log_interval' : cfg.TRAINER.ROW_LOG_INTERVAL,
-            'log_save_interval' : cfg.TRAINER.LOG_SAVE_INTERVAL,
-            'log_gpu_memory' : parse_cfg_param(cfg.TRAINER.LOG_GPU_MEMORY),
-            'default_save_path' : cfg.TRAINER.DEFAULT_SAVE_PATH,
-            'fast_dev_run' : cfg.TRAINER.FAST_DEV_RUN,
+            'min_epochs' : cfg.trainer.min_epochs,
+            'max_epochs' : cfg.trainer.MAX_EPOCHS,
+            'gradient_clip_val' : cfg.trainer.grad_clip_val,
+            'show_progress_bar' : cfg.trainer.show_progress_bar,
+            'row_log_interval' : cfg.trainer.row_log_interval,
+            'log_save_interval' : cfg.trainer.log_save_interval,
+            'log_gpu_memory' : parse_cfg_param(cfg.trainer.log_gpu_memory),
+            'default_save_path' : cfg.trainer.default_save_path,
+            'fast_dev_run' : cfg.trainer.fast_dev_run,
 
             'logger': self.logger,
             'early_stop_callback': self.early_stop_callback,
@@ -108,28 +108,28 @@ class MyTrainer(Trainer):
             return version
 
         # logger
-        LOGGER = self.cfg.TRAINER.LOGGER
-        assert LOGGER.SETTING in [0,1,2], "You can only set three logger levels [0,1,2], but you set {}".format(LOGGER.SETTING)
-        if LOGGER.type == 'mlflow':
-            params = {key: LOGGER.MLFLOW[key] for key in LOGGER.MLFLOW}
+        logger = self.cfg.trainer.logger
+        assert logger.setting in [0,1,2], "You can only set three logger levels [0,1,2], but you set {}".format(logger.setting)
+        if logger.type == 'mlflow':
+            params = {key: logger.mlflow[key] for key in logger.mlflow}
             custom_logger = MLFlowLogger(**params)
-        elif LOGGER.type == 'test_tube':
-            params = {key: LOGGER.TEST_TUBE[key] for key in LOGGER.TEST_TUBE} # key: save_dir, name, version
+        elif logger.type == 'test_tube':
+            params = {key: logger.test_tube[key] for key in logger.test_tube} # key: save_dir, name, version
 
             # save_dir: logger root path: 
-            if self.cfg.TRAINER.DEFAULT_SAVE_PATH:
-                save_dir = self.cfg.TRAINER.DEFAULT_SAVE_PATH
+            if self.cfg.trainer.default_save_path:
+                save_dir = self.cfg.trainer.default_save_path
             else:
-                save_dir = LOGGER.TEST_TUBE.save_dir
+                save_dir = logger.test_tube.save_dir
             
             # version
-            if LOGGER.SETTING==0:
+            if logger.setting==0:
                 version = _version_logger(save_dir, 'torchline_logs')
-            elif LOGGER.SETTING==2:
-                if LOGGER.TEST_TUBE.version<0:
-                    version = _version_logger(save_dir, LOGGER.TEST_TUBE.name)
+            elif logger.setting==2:
+                if logger.test_tube.version<0:
+                    version = _version_logger(save_dir, logger.test_tube.name)
                 else:
-                    version = int(LOGGER.TEST_TUBE.version)
+                    version = int(logger.test_tube.version)
             else:
                 return False
 
@@ -137,7 +137,7 @@ class MyTrainer(Trainer):
             params.update({'version': version, 'save_dir': save_dir})
             custom_logger = TestTubeLogger(**params)
         else:
-            print(f"{LOGGER.type} not supported")
+            print(f"{logger.type} not supported")
             raise NotImplementedError
         
         loggers = {
@@ -145,13 +145,13 @@ class MyTrainer(Trainer):
             1: False,
             2: custom_logger
         } # 0: True (default)  1: False  2: custom
-        logger = loggers[LOGGER.SETTING]
+        logger = loggers[logger.setting]
 
         # copy config file to the logger directory
-        if LOGGER.SETTING!=1:
+        if logger.setting!=1:
             src_cfg_file = self.hparams.config_file # source config file
             cfg_file_name = os.path.basename(src_cfg_file) # config file name
-            dst_cfg_file = os.path.join(self.cfg.TRAINER.DEFAULT_SAVE_PATH, logger.name, f"version_{logger.version}")
+            dst_cfg_file = os.path.join(self.cfg.trainer.default_save_path, logger.name, f"version_{logger.version}")
             if not os.path.exists(dst_cfg_file):
                 os.makedirs(dst_cfg_file)
             dst_cfg_file = os.path.join(dst_cfg_file, cfg_file_name)
@@ -160,27 +160,27 @@ class MyTrainer(Trainer):
 
     def _early_stop_callback(self):
         # early_stop_callback hooks
-        HOOKS = self.cfg.HOOKS
-        params = {key: HOOKS.EARLY_STOPPING[key] for key in HOOKS.EARLY_STOPPING if key != 'type'}
+        hooks = self.cfg.hooks
+        params = {key: hooks.early-stopping[key] for key in hooks.early-stopping if key != 'type'}
         early_stop_callbacks = {
             0: True,  # default setting
             1: False, # do not use early stopping
             2: EarlyStopping(**params) # use custom setting
         }
-        assert HOOKS.EARLY_STOPPING.type in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
-        early_stop_callback = early_stop_callbacks[HOOKS.EARLY_STOPPING.type]
+        assert hooks.early-stopping.type in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
+        early_stop_callback = early_stop_callbacks[hooks.early-stopping.type]
         return early_stop_callback
 
     def _checkpoint_callback(self):
         # checkpoint_callback hooks
-        HOOKS = self.cfg.HOOKS
-        assert HOOKS.MODEL_CHECKPOINT.type in [0,1,2], "You can only set three ckpt levels [0,1,2], but you set {}".format(HOOKS.MODEL_CHECKPOINT.type)
+        hooks = self.cfg.hooks
+        assert hooks.model_checkpoint.type in [0,1,2], "You can only set three ckpt levels [0,1,2], but you set {}".format(hooks.model_checkpoint.type)
 
         logger = self.logger
-        params = {key: HOOKS.MODEL_CHECKPOINT[key] for key in HOOKS.MODEL_CHECKPOINT if key != 'type'}
-        if HOOKS.MODEL_CHECKPOINT.type==2:
-            if HOOKS.MODEL_CHECKPOINT.filepath.strip()=='':
-                filepath = os.path.join(self.cfg.TRAINER.DEFAULT_SAVE_PATH, logger.name,
+        params = {key: hooks.model_checkpoint[key] for key in hooks.model_checkpoint if key != 'type'}
+        if hooks.model_checkpoint.type==2:
+            if hooks.model_checkpoint.filepath.strip()=='':
+                filepath = os.path.join(self.cfg.trainer.default_save_path, logger.name,
                                 f'version_{logger.version}','checkpoints')
                 params.update({'filepath': filepath})
             else:
@@ -190,7 +190,7 @@ class MyTrainer(Trainer):
             1: False,
             2: ModelCheckpoint(**params)
         }
-        checkpoint_callback = checkpoint_callbacks[HOOKS.MODEL_CHECKPOINT.type]
+        checkpoint_callback = checkpoint_callbacks[hooks.model_checkpoint.type]
         return checkpoint_callback
 
 def main(hparams):
@@ -203,26 +203,26 @@ def main(hparams):
 
     # only predict on some samples
     if hasattr(hparams, "predict_only") and hparams.predict_only:
-        PREDICT_ONLY = cfg.PREDICT_ONLY
-        if PREDICT_ONLY.type == 'ckpt':
-            load_params = {key: PREDICT_ONLY.LOAD_CKPT[key] for key in PREDICT_ONLY.LOAD_CKPT}
+        predict_only = cfg.predict_only
+        if predict_only.type == 'ckpt':
+            load_params = {key: predict_only.load_ckpt[key] for key in predict_only.load_ckpt}
             model = build_module_template(cfg)
             ckpt_path = load_params['checkpoint_path']
             model.load_state_dict(torch.load(ckpt_path)['state_dict'])
-        elif PREDICT_ONLY.type == 'metrics':
-            load_params = {key: PREDICT_ONLY.LOAD_METRIC[key] for key in PREDICT_ONLY.LOAD_METRIC}
+        elif predict_only.type == 'metrics':
+            load_params = {key: predict_only.load_metric[key] for key in predict_only.load_metric}
             model = build_module_template(cfg).load_from_metrics(**load_params)
         else:
-            print(f'{cfg.PREDICT_ONLY.type} not supported')
+            print(f'{cfg.predict_only.type} not supported')
             raise NotImplementedError
 
         model.eval()
         model.freeze() 
-        images = get_imgs_to_predict(cfg.PREDICT_ONLY.to_pred_file_path, cfg)
+        images = get_imgs_to_predict(cfg.predict_only.to_pred_file_path, cfg)
         if torch.cuda.is_available():
             images['img_data'] = images['img_data'].cuda()
             model = model.cuda()
-        if cfg.MODEL.CLASSES == 10:
+        if cfg.model.classes == 10:
             classes = np.loadtxt('skin10_class_names.txt', dtype=str)
         else:
             classes = np.loadtxt('skin100_class_names.txt', dtype=str)

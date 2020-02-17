@@ -80,7 +80,7 @@ class DPN(nn.Module):
 @META_ARCH_REGISTRY.register()
 class DPN26(DPN):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         net_cfg = {
             'in_planes': (96,192,384,768),
             'out_planes': (256,512,1024,2048),
@@ -92,7 +92,7 @@ class DPN26(DPN):
 @META_ARCH_REGISTRY.register()
 class DPN92(DPN):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         net_cfg = {
             'in_planes': (96,192,384,768),
             'out_planes': (256,512,1024,2048),

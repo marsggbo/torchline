@@ -11,13 +11,13 @@ The registered object will be called with `obj(cfg)`
 
 def build_sampler(cfg):
     """
-    Built the dataset sampler, defined by `cfg.DATASET.NAME`.
+    Built the dataset sampler, defined by `cfg.dataset.name`.
     """
-    is_train = cfg.DATASET.IS_TRAIN
+    is_train = cfg.dataset.is_train
     if is_train:
-        name = cfg.DATALOADER.SAMPLER_TRAIN
+        name = cfg.dataloader.sample_train
     else:
-        name = cfg.DATALOADER.SAMPLER_TEST
+        name = cfg.dataloader.sample_test
     if name == 'default':
         return None
     return SAMPLER_REGISTRY.get(name)(cfg)

@@ -15,9 +15,9 @@ def image_loader(filename, cfg):
         torch.tensor
     '''
     image = Image.open(filename).convert('RGB')
-    mean = cfg.TRANSFORMS.TENSOR.NORMALIZATION.mean
-    std = cfg.TRANSFORMS.TENSOR.NORMALIZATION.std
-    img_size = cfg.INPUT.SIZE
+    mean = cfg.transforms.tensor.normalization.mean
+    std = cfg.transforms.tensor.normalization.std
+    img_size = cfg.input.size
 
     transform = transforms.Compose([
                 transforms.Resize(img_size),

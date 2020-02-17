@@ -7,224 +7,224 @@ _C.VERSION = 1
 # ---------------------------------------------------------------------------- #
 # input
 # ---------------------------------------------------------------------------- #
-_C.INPUT = CN()
-_C.INPUT.SIZE = (224, 224)
+_C.input = CN()
+_C.input.size = (224, 224)
 
 # ---------------------------------------------------------------------------- #
 # dataset
 # ---------------------------------------------------------------------------- #
-_C.DATASET = CN()
-_C.DATASET.NAME = 'cifar10'
-_C.DATASET.BATCH_SIZE = 16
-_C.DATASET.DIR = './datasets/skin100_dataset/train'
-_C.DATASET.TRAIN_LIST = './datasets/train_skin10.txt'
-_C.DATASET.VALID_LIST = './datasets/valid_skin10.txt'
-_C.DATASET.TEST_LIST = './datasets/test_skin10.txt'
-_C.DATASET.IS_TRAIN = False # specify to load training or testing set
+_C.dataset = CN()
+_C.dataset.name = 'cifar10'
+_C.dataset.batch_size = 16
+_C.dataset.dir = './datasets/skin100_dataset/train'
+_C.dataset.train_list = './datasets/train_skin10.txt'
+_C.dataset.valid_list = './datasets/valid_skin10.txt'
+_C.dataset.test_list = './datasets/test_skin10.txt'
+_C.dataset.is_train = False # specify to load training or testing set
 
 
 # ---------------------------------------------------------------------------- #
 # transforms
 # ---------------------------------------------------------------------------- #
 
-_C.TRANSFORMS = CN() # image transforms
-_C.TRANSFORMS.NAME = 'DefaultTransforms'
+_C.transforms = CN() # image transforms
+_C.transforms.name = 'DefaultTransforms'
 
 
 ## transforms for tensor
-_C.TRANSFORMS.TENSOR = CN()
+_C.transforms.tensor = CN()
 # for skin100
-_C.TRANSFORMS.TENSOR.NORMALIZATION = CN()
-_C.TRANSFORMS.TENSOR.NORMALIZATION.mean = [0.6075, 0.4564, 0.4182] 
-_C.TRANSFORMS.TENSOR.NORMALIZATION.std = [0.2158, 0.1871, 0.1826]
-# _C.TRANSFORMS.TENSOR.NORMALIZATION = {
+_C.transforms.tensor.normalization = CN()
+_C.transforms.tensor.normalization.mean = [0.6075, 0.4564, 0.4182] 
+_C.transforms.tensor.normalization.std = [0.2158, 0.1871, 0.1826]
+# _C.transforms.tensor.normalization = {
 #             'mean':[0.6054, 0.4433, 0.4084], 
 #             'std': [0.2125, 0.1816, 0.1786]  # for skin10
-_C.TRANSFORMS.TENSOR.RANDOM_ERASING = CN()
-_C.TRANSFORMS.TENSOR.RANDOM_ERASING.enable = 0
-_C.TRANSFORMS.TENSOR.RANDOM_ERASING.p = 0.5
-_C.TRANSFORMS.TENSOR.RANDOM_ERASING.scale = (0.02, 0.3) # range of proportion of erased area against input image.
-_C.TRANSFORMS.TENSOR.RANDOM_ERASING.ratio = (0.3, 3.3), # range of aspect ratio of erased area.
+_C.transforms.tensor.random_erasing = CN()
+_C.transforms.tensor.random_erasing.enable = 0
+_C.transforms.tensor.random_erasing.p = 0.5
+_C.transforms.tensor.random_erasing.scale = (0.02, 0.3) # range of proportion of erased area against input image.
+_C.transforms.tensor.random_erasing.ratio = (0.3, 3.3), # range of aspect ratio of erased area.
 
 
 ## transforms for PIL image
-_C.TRANSFORMS.IMG = CN()
+_C.transforms.img = CN()
 
 ### modify the image size, only use one operation
 # random_resized_crop
-_C.TRANSFORMS.IMG.RANDOM_RESIZED_CROP = CN()
-_C.TRANSFORMS.IMG.RANDOM_RESIZED_CROP.enable = 0
-_C.TRANSFORMS.IMG.RANDOM_RESIZED_CROP.scale = (0.5, 1.0)
-_C.TRANSFORMS.IMG.RANDOM_RESIZED_CROP.ratio = (3/4, 4/3)
+_C.transforms.img.random_resized_crop = CN()
+_C.transforms.img.random_resized_crop.enable = 0
+_C.transforms.img.random_resized_crop.scale = (0.5, 1.0)
+_C.transforms.img.random_resized_crop.ratio = (3/4, 4/3)
 
 # resize
-_C.TRANSFORMS.IMG.RESIZE =  CN()
-_C.TRANSFORMS.IMG.RESIZE.enable = 1
+_C.transforms.img.resize =  CN()
+_C.transforms.img.resize.enable = 1
 
 # random_crop
-_C.TRANSFORMS.IMG.RANDOM_CROP = CN()
-_C.TRANSFORMS.IMG.RANDOM_CROP.enable = 1
-_C.TRANSFORMS.IMG.RANDOM_CROP.padding = 0
+_C.transforms.img.random_crop = CN()
+_C.transforms.img.random_crop.enable = 1
+_C.transforms.img.random_crop.padding = 0
 
 # center_crop
-_C.TRANSFORMS.IMG.CENTER_CROP = CN()
-_C.TRANSFORMS.IMG.CENTER_CROP.enable = 0
+_C.transforms.img.center_crop = CN()
+_C.transforms.img.center_crop.enable = 0
 
 ### without modifying the image size
-_C.TRANSFORMS.IMG.AUG_IMAGENET = False
-_C.TRANSFORMS.IMG.AUG_CIFAR = False
+_C.transforms.img.aug_imagenet = False
+_C.transforms.img.aug_cifar = False
 
 # color_jitter
-_C.TRANSFORMS.IMG.COLOR_JITTER = CN()
-_C.TRANSFORMS.IMG.COLOR_JITTER.enable = 0
-_C.TRANSFORMS.IMG.COLOR_JITTER.brightness = 0.
-_C.TRANSFORMS.IMG.COLOR_JITTER.contrast = 0.
-_C.TRANSFORMS.IMG.COLOR_JITTER.saturation = 0.
-_C.TRANSFORMS.IMG.COLOR_JITTER.hue = 0.
+_C.transforms.img.color_jitter = CN()
+_C.transforms.img.color_jitter.enable = 0
+_C.transforms.img.color_jitter.brightness = 0.
+_C.transforms.img.color_jitter.contrast = 0.
+_C.transforms.img.color_jitter.saturation = 0.
+_C.transforms.img.color_jitter.hue = 0.
 
 # horizontal_flip
-_C.TRANSFORMS.IMG.RANDOM_HORIZONTAL_FLIP = CN()
-_C.TRANSFORMS.IMG.RANDOM_HORIZONTAL_FLIP.enable = 1
-_C.TRANSFORMS.IMG.RANDOM_HORIZONTAL_FLIP.p = 0.5
+_C.transforms.img.random_horizontal_flip = CN()
+_C.transforms.img.random_horizontal_flip.enable = 1
+_C.transforms.img.random_horizontal_flip.p = 0.5
 
 # vertical_flip
-_C.TRANSFORMS.IMG.RANDOM_VERTICAL_FLIP = CN()
-_C.TRANSFORMS.IMG.RANDOM_VERTICAL_FLIP.enable = 1
-_C.TRANSFORMS.IMG.RANDOM_VERTICAL_FLIP.p = 0.5
+_C.transforms.img.random_vertical_flip = CN()
+_C.transforms.img.random_vertical_flip.enable = 1
+_C.transforms.img.random_vertical_flip.p = 0.5
 
 # random_rotation
-_C.TRANSFORMS.IMG.RANDOM_ROTATION = CN()
-_C.TRANSFORMS.IMG.RANDOM_ROTATION.enable = 1
-_C.TRANSFORMS.IMG.RANDOM_ROTATION.degrees = 10
+_C.transforms.img.random_rotation = CN()
+_C.transforms.img.random_rotation.enable = 1
+_C.transforms.img.random_rotation.degrees = 10
 
 
 
-_C.LABEL_TRANSFORMS = CN() # label transforms
-_C.LABEL_TRANSFORMS.NAME = 'default'
+_C.label_transforms = CN() # label transforms
+_C.label_transforms.name = 'default'
 
 
 # ---------------------------------------------------------------------------- #
 # dataloader
 # ---------------------------------------------------------------------------- #
-_C.DATALOADER = CN()
-_C.DATALOADER.NUM_WORKERS = 4
-_C.DATALOADER.SAMPLER_TRAIN = "default"
-_C.DATALOADER.SAMPLER_TEST = "default"
+_C.dataloader = CN()
+_C.dataloader.num_workers = 4
+_C.dataloader.sample_train = "default"
+_C.dataloader.sample_test = "default"
 
 
 # ---------------------------------------------------------------------------- #
 # model
 # ---------------------------------------------------------------------------- #
-_C.MODEL = CN()
-_C.MODEL.META_ARCH = 'Resnet50'
-_C.MODEL.WEIGHTS = ""
-_C.MODEL.CLASSES = 10
-_C.MODEL.PRETRAINED = True
-_C.MODEL.FINETUNE = False
-_C.MODEL.FEATURES = ['f4', ]
-_C.MODEL.FEATURES_FUSION = 'sum'
+_C.model = CN()
+_C.model.meta_arch = 'Resnet50'
+_C.model.WEIGHTS = ""
+_C.model.classes = 10
+_C.model.pretrained = True
+_C.model.finetune = False
+_C.model.features = ['f4', ]
+_C.model.features_fusion = 'sum'
 
 
 # ---------------------------------------------------------------------------- #
 # optimizer
 # ---------------------------------------------------------------------------- #
-_C.OPTIM = CN()
-_C.OPTIM.NAME = 'adam'
-_C.OPTIM.MOMENTUM = 0.9
-_C.OPTIM.BASE_LR = 0.001
-_C.OPTIM.WEIGHT_DECAY = 0.0005
+_C.optim = CN()
+_C.optim.name = 'adam'
+_C.optim.momentum = 0.9
+_C.optim.base_lr = 0.001
+_C.optim.weight_decay = 0.0005
 
 # scheduler
-_C.OPTIM.SCHEDULER = CN()
-_C.OPTIM.SCHEDULER.NAME = 'MultiStepLR'
-_C.OPTIM.SCHEDULER.GAMMA = 0.1 # decay factor
+_C.optim.scheduler = CN()
+_C.optim.scheduler.name = 'MultiStepLR'
+_C.optim.scheduler.gamma = 0.1 # decay factor
 
 # for CosineAnnealingLR
-_C.OPTIM.SCHEDULER.T_MAX = 10 
+_C.optim.scheduler.t_max = 10 
 
 # for ReduceLROnPlateau
-_C.OPTIM.SCHEDULER.MODE = 'min' # min for loss, max for acc
-_C.OPTIM.SCHEDULER.PATIENCE = 10
-_C.OPTIM.SCHEDULER.VERBOSE = True # print log once update lr
+_C.optim.scheduler.mode = 'min' # min for loss, max for acc
+_C.optim.scheduler.patience = 10
+_C.optim.scheduler.verbose = True # print log once update lr
 
 # for StepLR
-_C.OPTIM.SCHEDULER.STEP_SIZE = 10
+_C.optim.scheduler.step_size = 10
 
 # for MultiStepLR
-_C.OPTIM.SCHEDULER.MILESTONES = [10, 25, 35, 50]
+_C.optim.scheduler.milestones = [10, 25, 35, 50]
 
 # ---------------------------------------------------------------------------- #
 # loss
 # ---------------------------------------------------------------------------- #
-_C.LOSS = CN()
-_C.LOSS.NAME = 'CrossEntropy'
-_C.LOSS.CLASS_WEIGHT = []
+_C.loss = CN()
+_C.loss.name = 'CrossEntropy'
+_C.loss.class_weight = []
 
 # ---------------------------------------------------------------------------- #
 # hooks
 # ---------------------------------------------------------------------------- #
-_C.HOOKS = CN()
+_C.hooks = CN()
 
 ## EarlyStopping
-_C.HOOKS.EARLY_STOPPING = CN()
-_C.HOOKS.EARLY_STOPPING.type = 2 # 0: True 1: False 2: custom
-_C.HOOKS.EARLY_STOPPING.monitor = 'val_loss'
-_C.HOOKS.EARLY_STOPPING.min_delta = 0.
-_C.HOOKS.EARLY_STOPPING.patience = 10
-_C.HOOKS.EARLY_STOPPING.mode = 'min'
-_C.HOOKS.EARLY_STOPPING.verbose = 1
+_C.hooks.early-stopping = CN()
+_C.hooks.early-stopping.type = 2 # 0: True 1: False 2: custom
+_C.hooks.early-stopping.monitor = 'val_loss'
+_C.hooks.early-stopping.min_delta = 0.
+_C.hooks.early-stopping.patience = 10
+_C.hooks.early-stopping.mode = 'min'
+_C.hooks.early-stopping.verbose = 1
 
 # ModelCheckpoint
-_C.HOOKS.MODEL_CHECKPOINT = CN()
-_C.HOOKS.MODEL_CHECKPOINT.type = 0 # 0: True 1: False 2: custom
-_C.HOOKS.MODEL_CHECKPOINT.filepath = '' # the empty file path is recommended
-_C.HOOKS.MODEL_CHECKPOINT.monitor = 'val_loss'
-_C.HOOKS.MODEL_CHECKPOINT.mode = 'min'
-_C.HOOKS.MODEL_CHECKPOINT.verbose = 1
+_C.hooks.model_checkpoint = CN()
+_C.hooks.model_checkpoint.type = 0 # 0: True 1: False 2: custom
+_C.hooks.model_checkpoint.filepath = '' # the empty file path is recommended
+_C.hooks.model_checkpoint.monitor = 'val_loss'
+_C.hooks.model_checkpoint.mode = 'min'
+_C.hooks.model_checkpoint.verbose = 1
 
 
 # ---------------------------------------------------------------------------- #
 # Module template 
 # ---------------------------------------------------------------------------- #
 
-_C.MODULE_TEMPLATE = CN()
-_C.MODULE_TEMPLATE.NAME = 'LightningTemplateModel'
+_C.module_template = CN()
+_C.module_template.name = 'LightningTemplateModel'
 
 # ---------------------------------------------------------------------------- #
 # Trainer 
 # ---------------------------------------------------------------------------- #
 
-_C.TRAINER = CN()
-_C.TRAINER.ACCUMULATE_GRAD_BATCHES = 1
-_C.TRAINER.MIN_EPOCHS = 30
-_C.TRAINER.MAX_EPOCHS = 1000
-_C.TRAINER.GRAD_CLIP_VAL = 0.5 # clip gradient of which norm is larger than 0.5
-_C.TRAINER.SHOW_PROGRESS_BAR = True # show progree bar
-_C.TRAINER.ROW_LOG_INTERVAL = 100 # Every k batches lightning will make an entry in the metrics log
-_C.TRAINER.LOG_SAVE_INTERVAL = 100 # Every k batches, lightning will write the new logs to disk, ie: save a .csv log file every 100 batches
-_C.TRAINER.DEFAULT_SAVE_PATH = './output'
-_C.TRAINER.LOG_GPU_MEMORY = "" # 'min_max': log only the min/max utilization
-_C.TRAINER.FAST_DEV_RUN = False # everything only with 1 training and 1 validation batch.
+_C.trainer = CN()
+_C.trainer.ACCUMULATE_GRAD_BATCHES = 1
+_C.trainer.min_epochs = 30
+_C.trainer.MAX_EPOCHS = 1000
+_C.trainer.grad_clip_val = 0.5 # clip gradient of which norm is larger than 0.5
+_C.trainer.show_progress_bar = True # show progree bar
+_C.trainer.row_log_interval = 100 # Every k batches lightning will make an entry in the metrics log
+_C.trainer.log_save_interval = 100 # Every k batches, lightning will write the new logs to disk, ie: save a .csv log file every 100 batches
+_C.trainer.default_save_path = './output'
+_C.trainer.log_gpu_memory = "" # 'min_max': log only the min/max utilization
+_C.trainer.fast_dev_run = False # everything only with 1 training and 1 validation batch.
 
-_C.TRAINER.LOGGER = CN()
-_C.TRAINER.LOGGER.SETTING = 0 # 0: True  1: False  2: custom
-_C.TRAINER.LOGGER.type = 'mlflow'
-_C.TRAINER.LOGGER.MLFLOW = CN()
-_C.TRAINER.LOGGER.MLFLOW.experiment_name = 'torchline_logs'
-_C.TRAINER.LOGGER.MLFLOW.tracking_uri = _C.TRAINER.DEFAULT_SAVE_PATH
-_C.TRAINER.LOGGER.TEST_TUBE = CN()
-_C.TRAINER.LOGGER.TEST_TUBE.name = 'torchline_logs'
-_C.TRAINER.LOGGER.TEST_TUBE.save_dir = _C.TRAINER.DEFAULT_SAVE_PATH
-_C.TRAINER.LOGGER.TEST_TUBE.debug = False
-_C.TRAINER.LOGGER.TEST_TUBE.version = -1 #  # if <0, then use default version. Otherwise, it will restore the version.
+_C.trainer.logger = CN()
+_C.trainer.logger.setting = 0 # 0: True  1: False  2: custom
+_C.trainer.logger.type = 'mlflow'
+_C.trainer.logger.mlflow = CN()
+_C.trainer.logger.mlflow.experiment_name = 'torchline_logs'
+_C.trainer.logger.mlflow.tracking_uri = _C.trainer.default_save_path
+_C.trainer.logger.test_tube = CN()
+_C.trainer.logger.test_tube.name = 'torchline_logs'
+_C.trainer.logger.test_tube.save_dir = _C.trainer.default_save_path
+_C.trainer.logger.test_tube.debug = False
+_C.trainer.logger.test_tube.version = -1 #  # if <0, then use default version. Otherwise, it will restore the version.
 
 
 # ---------------------------------------------------------------------------- #
 # log
 # ---------------------------------------------------------------------------- #
 
-_C.LOG = CN()
-_C.LOG.NAME = 'log.txt'
+_C.log = CN()
+_C.log.name = 'log.txt'
 
 # ---------------------------------------------------------------------------- #
 # Misc 
@@ -235,16 +235,16 @@ _C.DEFAULT_CUDNN_BENCHMARK = True
 
 _C.TOPK = [1, 3] # save the top k results., e.g. acc@1 and acc@3
 
-_C.PREDICT_ONLY = CN()
-_C.PREDICT_ONLY.type = 'ckpt'
-_C.PREDICT_ONLY.to_pred_file_path = '' # specify the path of images
+_C.predict_only = CN()
+_C.predict_only.type = 'ckpt'
+_C.predict_only.to_pred_file_path = '' # specify the path of images
 
-_C.PREDICT_ONLY.LOAD_CKPT = CN() # load from checkpoint
-_C.PREDICT_ONLY.LOAD_CKPT.checkpoint_path = '' # load_from_checkpoint
+_C.predict_only.load_ckpt = CN() # load from checkpoint
+_C.predict_only.load_ckpt.checkpoint_path = '' # load_from_checkpoint
 
-_C.PREDICT_ONLY.LOAD_METRIC = CN()
-_C.PREDICT_ONLY.LOAD_METRIC.weights_path = '' # load_from_metrics
-_C.PREDICT_ONLY.LOAD_METRIC.tags_csv = ''
-_C.PREDICT_ONLY.LOAD_METRIC.on_gpu = True
-_C.PREDICT_ONLY.LOAD_METRIC.map_location = 'cuda:0'
+_C.predict_only.load_metric = CN()
+_C.predict_only.load_metric.weights_path = '' # load_from_metrics
+_C.predict_only.load_metric.tags_csv = ''
+_C.predict_only.load_metric.on_gpu = True
+_C.predict_only.load_metric.map_location = 'cuda:0'
 

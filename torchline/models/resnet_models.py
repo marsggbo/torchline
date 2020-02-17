@@ -24,9 +24,9 @@ class Resnet50(nn.Module):
     def __init__(self, cfg):
         super(Resnet50, self).__init__()
         self.cfg = cfg
-        self.num_classes = cfg.MODEL.CLASSES
-        name = cfg.MODEL.META_ARCH
-        pretrained = cfg.MODEL.PRETRAINED
+        self.num_classes = cfg.model.classes
+        name = cfg.model.META_ARCH
+        pretrained = cfg.model.pretrained
         model = eval(f"models.{name.lower()}(pretrained={pretrained})")
         model.fc = Identity()
         model = list(model.children())
@@ -40,18 +40,18 @@ class Resnet50(nn.Module):
         self.clf = nn.Linear(in_features=2048, out_features=self.num_classes)
     
     def extract_features(self, x):
-        assert len(self.cfg.MODEL.FEATURES) >= 1
+        assert len(self.cfg.model.features) >= 1
         features = {}
         features['stem'] = self.stem(x)
         features['f1'] = self.layer1(features['stem'])
         features['f2'] = self.layer2(features['f1'])
         features['f3'] = self.layer3(features['f2'])
         features['f4'] = self.layer4(features['f3'])
-        if len(self.cfg.MODEL.FEATURES) == 1:
-            final_feature = features[self.cfg.MODEL.FEATURES[0]]
+        if len(self.cfg.model.features) == 1:
+            final_feature = features[self.cfg.model.features[0]]
         else:
-            final_feature = features[self.cfg.MODEL.FEATURES[0]]
-            for f in self.cfg.MODEL.FEATURES[1:]:
+            final_feature = features[self.cfg.model.features[0]]
+            for f in self.cfg.model.features[1:]:
                 final_feature += features[f]
         return final_feature
 

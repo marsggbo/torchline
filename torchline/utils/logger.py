@@ -17,7 +17,7 @@ class Logger(object):
             将日志存入到指定的文件中
         '''
 
-        log_name = 'log.txt' if cfg is None else cfg.logger.log_file
+        file = 'log.txt' if cfg is None else cfg.logger.log_file
         # 创建一个logger
         file = cfg.logger.log_file
         self.logger = logging.getLogger(logger_name)

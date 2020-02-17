@@ -10,7 +10,7 @@ The registered object will be called with `obj(cfg)`
 
 def build_loss_fn(cfg):
     """
-    Built the loss function, defined by `cfg.LOSS.NAME`.
+    Built the loss function, defined by `cfg.loss.name`.
     """
-    name = cfg.LOSS.NAME
+    name = cfg.loss.name
     return LOSS_FN_REGISTRY.get(name)(cfg)

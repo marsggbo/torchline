@@ -111,32 +111,32 @@ class ResNet(nn.Module):
 @META_ARCH_REGISTRY.register()
 class Resnet18(ResNet):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(Resnet18, self).__init__(BasicBlock, [2,2,2,2], num_classes=num_classes)
     
 
 @META_ARCH_REGISTRY.register()
 class Resnet34(ResNet):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(Resnet34, self).__init__(BasicBlock, [3,4,6,3], num_classes=num_classes)
 
 @META_ARCH_REGISTRY.register()
 class Resnet50(ResNet):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(Resnet50, self).__init__(Bottleneck, [3,4,6,3], num_classes=num_classes)
 
 @META_ARCH_REGISTRY.register()
 class Resnet101(ResNet):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(Resnet101, self).__init__(Bottleneck, [3,4,23,3], num_classes=num_classes)
 
 @META_ARCH_REGISTRY.register()
 class Resnet152(ResNet):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(Resnet152, self).__init__(Bottleneck, [3,8,36,3], num_classes=num_classes)
 
 
@@ -144,8 +144,8 @@ def test():
     from torchline.config import get_cfg
     from torchline.models import build_model
     cfg = get_cfg()
-    cfg.MODEL.NAME = 'Resnet50'
-    cfg.MODEL.CLASSES = 10
+    cfg.model.name = 'Resnet50'
+    cfg.model.classes = 10
     net = build_model(cfg)
     y = net(torch.randn(1,3,32,32))
     print(y.size())

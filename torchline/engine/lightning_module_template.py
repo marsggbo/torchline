@@ -39,17 +39,17 @@ class LightningTemplateModel(LightningModule):
         self.cfg = cfg
         self.hparams = self.cfg.hparams
         self.topk = cfg.TOPK
-        self.batch_size = self.cfg.DATASET.BATCH_SIZE
+        self.batch_size = self.cfg.dataset.batch_size
 
         # if you specify an example input, the summary will show input/output for each layer
-        h, w = self.cfg.INPUT.SIZE
+        h, w = self.cfg.input.size
         self.example_input_array = torch.rand(1, 3, h, w)
 
         # build model
         self.model = self.build_model(cfg)
 
     # ---------------------
-    # MODEL SETUP
+    # model SETUP
     # ---------------------
     @classmethod
     def build_model(cls, cfg):
@@ -74,7 +74,7 @@ class LightningTemplateModel(LightningModule):
         :return:
         """
         cfg.defrost()
-        cfg.DATASET.IS_TRAIN = is_train
+        cfg.dataset.is_train = is_train
         cfg.freeze()
         return build_data(cfg)
 
@@ -85,7 +85,7 @@ class LightningTemplateModel(LightningModule):
         :return:
         """
         cfg.defrost()
-        cfg.DATASET.IS_TRAIN = is_train
+        cfg.dataset.is_train = is_train
         cfg.freeze()
         return build_sampler(cfg)
 
@@ -235,10 +235,10 @@ class LightningTemplateModel(LightningModule):
         '''
         return torch.optim.Optimizer
         '''
-        optim_name = self.cfg.OPTIM.NAME
-        momentum = self.cfg.OPTIM.MOMENTUM
-        weight_decay = self.cfg.OPTIM.WEIGHT_DECAY
-        lr = self.cfg.OPTIM.BASE_LR
+        optim_name = self.cfg.optim.name
+        momentum = self.cfg.optim.momentum
+        weight_decay = self.cfg.optim.weight_decay
+        lr = self.cfg.optim.base_lr
         if optim_name.lower() == 'sgd':
             return torch.optim.SGD(self.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
         elif optim_name.lower() == 'adadelta':
@@ -255,22 +255,22 @@ class LightningTemplateModel(LightningModule):
         '''
         return torch.optim.lr_scheduler
         '''
-        scheduler_name = self.cfg.OPTIM.SCHEDULER.NAME
+        scheduler_name = self.cfg.optim.scheduler.name
         if scheduler_name.lower() == 'CosineAnnealingLR'.lower():
             return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
         elif scheduler_name.lower() == 'StepLR'.lower():
-            step_size = self.cfg.OPTIM.SCHEDULER.STEP_SIZE
-            gamma = self.cfg.OPTIM.SCHEDULER.GAMMA
+            step_size = self.cfg.optim.scheduler.step_size
+            gamma = self.cfg.optim.scheduler.gamma
             return optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
         elif scheduler_name.lower() == 'MultiStepLR'.lower():
-            milestones = self.cfg.OPTIM.SCHEDULER.MILESTONES
-            gamma = self.cfg.OPTIM.SCHEDULER.GAMMA
+            milestones = self.cfg.optim.scheduler.milestones
+            gamma = self.cfg.optim.scheduler.gamma
             return optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
         elif scheduler_name.lower() == 'ReduceLROnPlateau'.lower():
-            mode = self.cfg.OPTIM.SCHEDULER.MODE
-            patience = self.cfg.OPTIM.SCHEDULER.PATIENCE
-            verbose = self.cfg.OPTIM.SCHEDULER.VERBOSE
-            factor = self.cfg.OPTIM.SCHEDULER.GAMMA
+            mode = self.cfg.optim.scheduler.mode
+            patience = self.cfg.optim.scheduler.patience
+            verbose = self.cfg.optim.scheduler.verbose
+            factor = self.cfg.optim.scheduler.gamma
             return optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode=mode, patience=patience, 
                                                         verbose=verbose, factor=factor)
         else:
@@ -303,7 +303,7 @@ class LightningTemplateModel(LightningModule):
             batch_size=batch_size,
             shuffle=should_shuffle,
             sampler=train_sampler,
-            num_workers=self.cfg.DATALOADER.NUM_WORKERS
+            num_workers=self.cfg.dataloader.num_workers
         )
 
         return loader

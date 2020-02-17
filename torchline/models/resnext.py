@@ -86,27 +86,27 @@ class ResNeXt(nn.Module):
 @META_ARCH_REGISTRY.register()
 class ResNeXt29_2x64d(ResNeXt):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(ResNeXt29_2x64d, self).__init__(num_blocks=[3,3,3], cardinality=2, 
                                     bottleneck_width=64, num_classes=num_classes)
 
 @META_ARCH_REGISTRY.register()
 class ResNeXt29_4x64d(ResNeXt):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(ResNeXt29_4x64d, self).__init__(num_blocks=[3,3,3], cardinality=4, 
                                     bottleneck_width=64, num_classes=num_classes)
 
 @META_ARCH_REGISTRY.register()
 class ResNeXt29_8x64d(ResNeXt):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(ResNeXt29_8x64d, self).__init__(num_blocks=[3,3,3], cardinality=8, 
                                     bottleneck_width=64, num_classes=num_classes)
 
 @META_ARCH_REGISTRY.register()
 class ResNeXt29_32x4d(ResNeXt):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(ResNeXt29_32x4d, self).__init__(num_blocks=[3,3,3], cardinality=32, 
                                     bottleneck_width=4, num_classes=num_classes)

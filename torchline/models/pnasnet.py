@@ -118,12 +118,12 @@ class PNASNet(nn.Module):
 @META_ARCH_REGISTRY.register()
 class PNASNetA(PNASNet):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(PNASNetA, self).__init__(CellA, num_cells=6, num_planes=44, num_classes=num_classes)
 
 @META_ARCH_REGISTRY.register()
 class PNASNetB(PNASNet):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         super(PNASNetB, self).__init__(CellB, num_cells=6, num_planes=32, num_classes=num_classes)
 

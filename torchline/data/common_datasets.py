@@ -11,14 +11,14 @@ __all__ = [
 
 @DATASET_REGISTRY.register()
 def MNIST(cfg):
-    root = cfg.DATASET.DIR
-    is_train = cfg.DATASET.IS_TRAIN
+    root = cfg.dataset.dir
+    is_train = cfg.dataset.is_train
     transform = build_transforms(cfg)
     return _MNIST(root=root, train=is_train, transform=transform.transform, download=True)
 
 @DATASET_REGISTRY.register()
 def CIFAR10(cfg):
-    root = cfg.DATASET.DIR
-    is_train = cfg.DATASET.IS_TRAIN
+    root = cfg.dataset.dir
+    is_train = cfg.dataset.is_train
     transform = build_transforms(cfg)
     return _CIFAR10(root=root, train=is_train, transform=transform.transform, download=True)

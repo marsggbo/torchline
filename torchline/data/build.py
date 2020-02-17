@@ -10,7 +10,7 @@ The registered object will be called with `obj(cfg)`
 
 def build_data(cfg):
     """
-    Built the dataset, defined by `cfg.DATASET.NAME`.
+    Built the dataset, defined by `cfg.dataset.name`.
     """
-    name = cfg.DATASET.NAME
+    name = cfg.dataset.name
     return DATASET_REGISTRY.get(name)(cfg)

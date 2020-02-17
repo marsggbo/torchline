@@ -1,43 +1,43 @@
-INPUT:
-    SIZE: (224, 224)
-MODEL:
-    META_ARCH: 'Resnet50'
-    CLASSES: 10
-DATASET:
+input:
+    size: (224, 224)
+model:
+    meta_arch: 'Resnet50'
+    classes: 10
+dataset:
     NAME: 'Skin10Dataset'
-    DIR: '../datasets/skin100_dataset/train'
-    TRAIN_LIST: '../datasets/skin10_train.txt'
-    VALID_LIST: '../datasets/skin10_test.txt'
-    TEST_LIST: '../datasets/skin10_test.txt'
-    BATCH_SIZE: 32
-TRANSFORMS:
+    dir: '../datasets/skin100_dataset/train'
+    train_list: '../datasets/skin10_train.txt'
+    valid_list: '../datasets/skin10_test.txt'
+    test_list: '../datasets/skin10_test.txt'
+    batch_size: 32
+transforms:
     NAME: 'SkinTransforms'
-    TENSOR:
-        NORMALIZATION: 
+    tensor:
+        normalization: 
             mean: [0.6054, 0.4433, 0.4084]
             std: [0.2125, 0.1816, 0.1786]
-    IMG:
-        AUG_CIFAR: False
-        COLOR_JITTER:
+    img:
+        aug_cifar: False
+        color_jitter:
             brightness: 0.05
             contrast: 0.05
             saturation: 0.05
             hue: 0.05
-TRAINER:
-    DEFAULT_SAVE_PATH: './output_skin100'
-    LOGGER:
-        SETTING: 0
+trainer:
+    default_save_path: './output_skin100'
+    logger:
+        setting: 0
         type: 'test_tube'
-        MLFLOW:
+        mlflow:
             tracking_uri: './output_skin100' 
-        TEST_TUBE:
+        test_tube:
             save_dir: './output_skin100'
-HOOKS:
-    EARLY_STOPPING:
+hooks:
+    early-stopping:
         type: 2
         patience: 20
         monitor: 'val_loss'
         mode: 'min'
-    MODEL_CHECKPOINT:
+    model_checkpoint:
         type: 0
         filepath: './output_skin100'

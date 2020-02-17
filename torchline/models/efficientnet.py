@@ -88,7 +88,7 @@ class EfficientNet(nn.Module):
 @META_ARCH_REGISTRY.register()
 class EfficientNetB0(EfficientNet):
     def __init__(self, cfg):
-        num_classes = cfg.MODEL.CLASSES
+        num_classes = cfg.model.classes
         # (expansion, out_planes, num_blocks, stride)
         cfg = [(1,  16, 1, 2),
             (6,  24, 2, 1),

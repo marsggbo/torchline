@@ -59,9 +59,9 @@ cd projects/cifar10_demo
 CUDA_VISIBLE_DEVICES=0 python main.py --config_file cifar10.yaml --gpus 1" 
 ```
 
-如果你需要调试，可以加上如下参数`TRAINER.FAST_DEV_RUN True`,即
+如果你需要调试，可以加上如下参数`trainer.fast_dev_run True`,即
 ```python
 cd projects/cifar10_demo
-CUDA_VISIBLE_DEVICES=0 python main.py --config_file cifar10.yaml --gpus 1 TRAINER.FAST_DEV_RUN True
+CUDA_VISIBLE_DEVICES=0 python main.py --config_file cifar10.yaml --gpus 1 trainer.fast_dev_run True
 ```
 CIFAR demo使用ResNet50，最后只训练到72epoch，在第54 epoch取得最好表现(94.39% validation accuracy)

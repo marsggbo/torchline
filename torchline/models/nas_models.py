@@ -17,15 +17,15 @@ model_params = {
 class Pretrainedmodels(nn.Module):
     def __init__(self, cfg):
         super(Pretrainedmodels, self).__init__()
-        model_name = cfg.MODEL.META_ARCH
-        img_size = cfg.INPUT.SIZE[0]
+        model_name = cfg.model.meta_arch
+        img_size = cfg.input.size[0]
         assert img_size==model_params[model_name.lower()][1], "the img_size should be {model_params[model_name.lower()][1]}"
-        num_classes = cfg.MODEL.CLASSES
-        pretrained = 'imagenet' if cfg.MODEL.PRETRAINED else None
+        num_classes = cfg.model.classes
+        pretrained = 'imagenet' if cfg.model.pretrained else None
         model = pretrainedmodels.__dict__[model_name.lower()](num_classes=1000, pretrained=pretrained)
         model.last_linear = nn.Linear(in_features=model_params[model_name.lower()][0], 
                                     out_features=num_classes, bias=True)
-        if cfg.MODEL.FINETUNE:
+        if cfg.model.finetune:
             print(f"finetuning {type(self).__name__} model")
             for name, p in model.named_parameters():
                 if 'last_linear' not in name:

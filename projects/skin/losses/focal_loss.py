@@ -25,10 +25,10 @@ class FocalLoss(torch.nn.Module):
 
         super(FocalLoss,self).__init__()
         self.cfg = cfg
-        alpha = cfg.LOSS.FOCAL_LOSS.alpha
-        gamma = cfg.LOSS.FOCAL_LOSS.gamma
-        self.size_average = cfg.LOSS.FOCAL_LOSS.size_average
-        num_classes = cfg.MODEL.CLASSES
+        alpha = cfg.loss.focal_loss.alpha
+        gamma = cfg.loss.focal_loss.gamma
+        self.size_average = cfg.loss.focal_loss.size_average
+        num_classes = cfg.model.classes
         if isinstance(alpha,list):
             assert len(alpha)==num_classes
             alpha /= np.sum(alpha) # setting the value in range of [0, 1]

@@ -10,14 +10,14 @@ from . import autoaugment
 from .data_utils import Cutout, RandomErasing
 from torchline.utils import Registry, Logger
 
-TRANSFORMS_REGISTRY = Registry('TRANSFORMS')
+TRANSFORMS_REGISTRY = Registry('transforms')
 TRANSFORMS_REGISTRY.__doc__ = """
 Registry for data transform functions, i.e. torchvision.transforms
 
 The registered object will be called with `obj(cfg)`
 """
 
-LABEL_TRANSFORMS_REGISTRY = Registry('LABEL_TRANSFORMS')
+LABEL_TRANSFORMS_REGISTRY = Registry('label_transforms')
 LABEL_TRANSFORMS_REGISTRY.__doc__ = """
 Registry for label transform functions, i.e. torchvision.transforms
 
@@ -36,16 +36,16 @@ logger_print = Logger(__name__).getlog()
 
 def build_transforms(cfg):
     """
-    Built the transforms, defined by `cfg.TRANSFORMS.NAME`.
+    Built the transforms, defined by `cfg.transforms.name`.
     """
-    name = cfg.TRANSFORMS.NAME
+    name = cfg.transforms.name
     return TRANSFORMS_REGISTRY.get(name)(cfg)
     
 def build_label_transforms(cfg):
     """
-    Built the label transforms, defined by `cfg.LABEL_TRANSFORMS.NAME`.
+    Built the label transforms, defined by `cfg.label_transforms.name`.
     """
-    name = cfg.LABEL_TRANSFORMS.NAME
+    name = cfg.label_transforms.name
     if name == 'default':
         return None
     return LABEL_TRANSFORMS_REGISTRY.get(name)(cfg)
@@ -54,11 +54,11 @@ def build_label_transforms(cfg):
 class DefaultTransforms:
     def __init__(self, cfg):
         self.cfg = cfg
-        self.is_train = cfg.DATASET.IS_TRAIN
-        self.mean = cfg.TRANSFORMS.TENSOR.NORMALIZATION.mean
-        self.std = cfg.TRANSFORMS.TENSOR.NORMALIZATION.std
-        self.img_size = cfg.INPUT.SIZE
-        self.padding = cfg.TRANSFORMS.IMG.RANDOM_CROP.padding
+        self.is_train = cfg.dataset.is_train
+        self.mean = cfg.transforms.tensor.normalization.mean
+        self.std = cfg.transforms.tensor.normalization.std
+        self.img_size = cfg.input.size
+        self.padding = cfg.transforms.img.random_crop.padding
         self.min_edge_size = min(self.img_size)
         self.normalize = transforms.Normalize(self.mean, self.std)
         self.transform = self.get_transform()
@@ -88,7 +88,7 @@ class DefaultTransforms:
     @property
     def train_transform(self):
         # aug_imagenet
-        if self.cfg.TRANSFORMS.IMG.AUG_IMAGENET:
+        if self.cfg.transforms.img.aug_imagenet:
             logger_print.info('Using imagenet augmentation')
             transform = transforms.Compose([
                 transforms.Resize(self.min_edge_size+1),
@@ -98,7 +98,7 @@ class DefaultTransforms:
                 self.normalize
             ])
         # aug cifar
-        elif self.cfg.TRANSFORMS.IMG.AUG_CIFAR:
+        elif self.cfg.transforms.img.aug_cifar:
             logger_print.info('Using cifar augmentation')
             transform = transforms.Compose([
                 transforms.Resize(self.min_edge_size+1),
@@ -116,37 +116,37 @@ class DefaultTransforms:
     def read_transform_from_cfg(self):
         transform_list = []
         self.check_conflict_options()
-        img_transforms = self.cfg.TRANSFORMS.IMG
+        img_transforms = self.cfg.transforms.img
 
         # resize and crop opertaion
-        if img_transforms.RANDOM_RESIZED_CROP.enable:
+        if img_transforms.random_resized_crop.enable:
             transform_list.append(transforms.RandomResizedCrop(self.img_size))
-        elif img_transforms.RESIZE.enable:
+        elif img_transforms.resize.enable:
             transform_list.append(transforms.Resize(self.min_edge_size))
-        if img_transforms.RANDOM_CROP.enable:
+        if img_transforms.random_crop.enable:
             transform_list.append(transforms.RandomCrop(self.min_edge_size, padding=self.padding))
-        elif img_transforms.CENTER_CROP.enable:
+        elif img_transforms.center_crop.enable:
             transform_list.append(transforms.CenterCrop(self.min_edge_size))
 
         # ColorJitter
-        if img_transforms.COLOR_JITTER.enable:
-            params = {key: img_transforms.COLOR_JITTER[key] for key in img_transforms.COLOR_JITTER 
+        if img_transforms.color_jitter.enable:
+            params = {key: img_transforms.color_jitter[key] for key in img_transforms.color_jitter 
                             if key != 'enable'}
             transform_list.append(transforms.ColorJitter(**params))
 
         # horizontal flip
-        if img_transforms.RANDOM_HORIZONTAL_FLIP.enable:
-            p = img_transforms.RANDOM_HORIZONTAL_FLIP.p
+        if img_transforms.random_horizontal_flip.enable:
+            p = img_transforms.random_horizontal_flip.p
             transform_list.append(transforms.RandomHorizontalFlip(p))
         
         # vertical flip
-        if img_transforms.RANDOM_VERTICAL_FLIP.enable:
-            p = img_transforms.RANDOM_VERTICAL_FLIP.p
+        if img_transforms.random_vertical_flip.enable:
+            p = img_transforms.random_vertical_flip.p
             transform_list.append(transforms.RandomVerticalFlip(p))
 
         # rotation
-        if img_transforms.RANDOM_ROTATION.enable:
-            degrees = img_transforms.RANDOM_ROTATION.degrees
+        if img_transforms.random_rotation.enable:
+            degrees = img_transforms.random_rotation.degrees
             transform_list.append(transforms.RandomRotation(degrees))
         transform_list.append(transforms.ToTensor())
         transform_list.append(self.normalize)
@@ -155,10 +155,10 @@ class DefaultTransforms:
         return transform_list
 
     def check_conflict_options(self):
-        count = self.cfg.TRANSFORMS.IMG.RANDOM_RESIZED_CROP.enable + \
-                self.cfg.TRANSFORMS.IMG.RESIZE.enable
+        count = self.cfg.transforms.img.random_resized_crop.enable + \
+                self.cfg.transforms.img.resize.enable
         assert count <= 1, 'You can only use one resize transform operation'
 
-        count = self.cfg.TRANSFORMS.IMG.RANDOM_CROP.enable + \
-                self.cfg.TRANSFORMS.IMG.CENTER_CROP.enable
+        count = self.cfg.transforms.img.random_crop.enable + \
+                self.cfg.transforms.img.center_crop.enable
         assert count <= 1, 'You can only use one crop transform operation'

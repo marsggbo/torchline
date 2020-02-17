@@ -3,8 +3,8 @@ from torchline.config import CfgNode as CN
 def add_skin_config(cfg):
     _C = cfg
     
-    _C.LOSS.FOCAL_LOSS = CN()
-    _C.LOSS.FOCAL_LOSS.alpha = [3.32688889, 0.12486239, 3.05530612, 3.4025    , 3.32688889,
+    _C.loss.focal_loss = CN()
+    _C.loss.focal_loss.alpha = [3.32688889, 0.12486239, 3.05530612, 3.4025    , 3.32688889,
     0.21603175, 3.65146341, 2.10859155, 2.82471698, 4.40323529,
     1.05429577, 4.40323529, 2.02310811, 4.6784375 , 3.83871795,
     4.6784375 , 0.33642697, 0.06178704, 0.63978632, 2.87903846,
@@ -24,5 +24,5 @@ def add_skin_config(cfg):
     0.48765472, 1.14282443, 3.25456522, 2.5812069 , 2.722     ,
     0.51270548, 3.32688889, 2.41467742, 1.59265957, 0.63436441,
     1.27957265, 4.82935484, 4.40323529, 3.56452381, 4.40323529]
-    _C.LOSS.FOCAL_LOSS.gamma = 2
-    _C.LOSS.FOCAL_LOSS.size_average = True
+    _C.loss.focal_loss.gamma = 2
+    _C.loss.focal_loss.size_average = True

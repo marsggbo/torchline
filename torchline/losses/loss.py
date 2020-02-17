@@ -8,7 +8,7 @@ __all__ = [
 
 @LOSS_FN_REGISTRY.register()
 def CrossEntropy(cfg):
-    weight = cfg.LOSS.CLASS_WEIGHT
+    weight = cfg.loss.class_weight
     if weight in ['', None, []]:
         weight = None
     else:

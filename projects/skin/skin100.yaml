@@ -1,17 +1,17 @@
-INPUT:
-    SIZE: (224, 224)
-MODEL:
-    META_ARCH: 'Nasnetamobile'
-    CLASSES: 100
-DATASET:
+input:
+    size: (224, 224)
+model:
+    meta_arch: 'Nasnetamobile'
+    classes: 100
+dataset:
     NAME: 'Skin100Dataset'
-    DIR: '../datasets/skin100_dataset/train'
-    TRAIN_LIST: '../datasets/skin100_train.txt'
-    VALID_LIST: '../datasets/skin100_test.txt'
-    TEST_LIST: '../datasets/skin100_test.txt'
-    BATCH_SIZE: 32
-LOSS:
-    CLASS_WEIGHT: '[3.32688889, 0.12486239, 3.05530612, 3.4025    , 3.32688889,
+    dir: '../datasets/skin100_dataset/train'
+    train_list: '../datasets/skin100_train.txt'
+    valid_list: '../datasets/skin100_test.txt'
+    test_list: '../datasets/skin100_test.txt'
+    batch_size: 32
+loss:
+    class_weight: '[3.32688889, 0.12486239, 3.05530612, 3.4025    , 3.32688889,
     0.21603175, 3.65146341, 2.10859155, 2.82471698, 4.40323529,
     1.05429577, 4.40323529, 2.02310811, 4.6784375 , 3.83871795,
     4.6784375 , 0.33642697, 0.06178704, 0.63978632, 2.87903846,
@@ -31,69 +31,69 @@ LOSS:
     0.48765472, 1.14282443, 3.25456522, 2.5812069 , 2.722     ,
     0.51270548, 3.32688889, 2.41467742, 1.59265957, 0.63436441,
     1.27957265, 4.82935484, 4.40323529, 3.56452381, 4.40323529]'
-OPTIM:
+optim:
     NAME: 'sgd'
-    BASE_LR: 0.1
-    SCHEDULER:
+    base_lr: 0.1
+    scheduler:
         NAME: 'MultiStepLR'
-        MILESTONES: [30, 50, 70, 100]
-        GAMMA: 0.1
-TRANSFORMS:
+        milestones: [30, 50, 70, 100]
+        gamma: 0.1
+transforms:
     NAME: 'SkinTransforms'
-    TENSOR:
-        NORMALIZATION: 
+    tensor:
+        normalization: 
             mean: [0.6075, 0.4564, 0.4182]
             std: [0.2158, 0.1871, 0.1826]
-    IMG:
-        AUG_CIFAR: False
-        COLOR_JITTER:
+    img:
+        aug_cifar: False
+        color_jitter:
             enable: 0
             brightness: 0.05
             contrast: 0.05
             saturation: 0.05
             hue: 0.05
-        RESIZE:
+        resize:
             enable: 1
-        RANDOM_CROP:
+        random_crop:
             enable: 1
             padding: 4
-        RANDOM_HORIZONTAL_FLIP:
+        random_horizontal_flip:
             enable: 1
             p: 0.5
-        RANDOM_VERTICAL_FLIP:
+        random_vertical_flip:
             enable: 0
             p: 0.5
-        RANDOM_ROTATION:
+        random_rotation:
             enable: 1
-TRAINER:
-    DEFAULT_SAVE_PATH: './output_skin100'
-    LOGGER:
-        SETTING: 2
+trainer:
+    default_save_path: './output_skin100'
+    logger:
+        setting: 2
         type: 'test_tube'
-        MLFLOW:
+        mlflow:
             tracking_uri: './output_skin100' 
-        TEST_TUBE:
+        test_tube:
             save_dir: './output_skin100'
             name: 'torchline_logs'
             version: -1 # if <0, then use default version
-HOOKS:
-    EARLY_STOPPING:
+hooks:
+    early-stopping:
         type: 2
         patience: 20
         monitor: 'val_acc_1'
         mode: 'max'
-    MODEL_CHECKPOINT:
+    model_checkpoint:
         type: 2
         monitor: 'val_acc_1'
         mode: 'max'
         filepath: '' # please do not specify
 TOPK: [1, 5]
-PREDICT_ONLY:
+predict_only:
     type: 'ckpt'
     to_pred_file_path: '' # specify the path of images
-    LOAD_CKPT:
+    load_ckpt:
         checkpoint_path: '' # load_from_checkpoint
-    LOAD_METRIC:
+    load_metric:
         weights_path: '' # load_from_metrics
         tags_csv: ''
         on_gpu: True

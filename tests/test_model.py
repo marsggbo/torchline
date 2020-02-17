@@ -17,8 +17,8 @@ args = Args.parse_args()
 
 
 cfg = get_cfg()
-cfg.MODEL.META_ARCH = args.model
-cfg.MODEL.CLASSES = 10
+cfg.model.meta_arch = args.model
+cfg.model.classes = 10
 model = build_model(cfg)
 print(type(model).__name__)
 size = args.img_size
