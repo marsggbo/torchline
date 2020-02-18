@@ -204,7 +204,7 @@ _C.trainer.default_save_path = './output'
 _C.trainer.gradient_clip_val = 0
 _C.trainer.process_position = 0
 _C.trainer.num_nodes = 1
-_C.trainer.gpus = '' # list/str/int todo
+_C.trainer.gpus = [] # list
 _C.trainer.log_gpu_memory = ""
 _C.trainer.show_progress_bar = True
 _C.trainer.overfit_pct = 0.0 # if 0<overfit_pct<1, (e.g. overfit_pct = 0.1) then train, val, test only 10% data.

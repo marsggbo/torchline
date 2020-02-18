@@ -14,9 +14,9 @@ from torchline.engine import build_module
 from torchline.trainer import build_trainer
 from torchline.utils import get_imgs_to_predict
 
-from config import add_skin_config
 from data import *
 from models import *
+from config import *
 
 
 def main(hparams):
@@ -26,6 +26,7 @@ def main(hparams):
     """
 
     cfg = get_cfg()
+    add_skin_config(cfg)
     cfg.setup_cfg_with_hparams(hparams)
 
     # only predict on some samples

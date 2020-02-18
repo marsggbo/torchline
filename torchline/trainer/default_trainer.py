@@ -11,7 +11,7 @@ from .build import TRAINER_REGISTRY
 
 
 def parse_cfg_param(cfg_item):
-    return cfg_item if cfg_item != '' else None
+    return cfg_item if cfg_item not in ['', []] else None
 
 @TRAINER_REGISTRY.register()
 class DefaultTrainer(Trainer):
