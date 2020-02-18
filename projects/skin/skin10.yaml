@@ -1,7 +1,7 @@
 input:
     size: (224, 224)
 model:
-    name: 'Resnet50'
+    name: 'Nasnetamobile'
     classes: 10
 dataset:
     name: 'Skin10Dataset'
@@ -19,10 +19,14 @@ transforms:
     img:
         aug_cifar: False
         color_jitter:
+            enable: 1
             brightness: 0.05
             contrast: 0.05
             saturation: 0.05
             hue: 0.05
+optim:
+    scheduler:
+        milestones: [20, 40, 60, 80]
 trainer:
     default_save_path: './output_skin100'
     logger:
@@ -34,10 +38,10 @@ trainer:
             save_dir: './output_skin100'
 hooks:
     early_stopping:
-        type: 2
+        setting: 2
         patience: 20
-        monitor: 'val_loss'
-        mode: 'min'
+        monitor: 'val_acc'
+        mode: 'max'
     model_checkpoint:
-        type: 0
+        setting: 0
         filepath: './output_skin100'

@@ -19,8 +19,8 @@ args = Args.parse_args()
 cfg = get_cfg()
 cfg.model.name = args.model
 cfg.model.classes = 10
+cfg.input.size = [args.img_size, args.img_size]
+cfg.model.pretrained = False
 model = build_model(cfg)
 print(type(model).__name__)
-size = args.img_size
-y = model(torch.randn(1,3,size,size))
-print(y.size())
+print(sum([p.numel() for p in model.parameters()])*4/1024**2)

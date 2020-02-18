@@ -47,12 +47,12 @@ trainer:
             version: -1 # if <0, then use default version
 hooks:
     early_stopping:
-        type: 2
+        setting: 2
         patience: 20
         monitor: 'val_acc_1'
         mode: 'max'
     model_checkpoint:
-        type: 2
+        setting: 2
         monitor: 'val_acc_1'
         mode: 'max'
         filepath: ''
