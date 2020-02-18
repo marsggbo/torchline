@@ -122,7 +122,7 @@ hooks:
 
 ### checkpoint参数解释
 
-`type`参数同logger的`setting`参数，推荐使用默认参数设置，即设置为0，这样checkpoint会自动保存到对应的logger版本日志中去。
+`setting`参数同logger的`setting`参数，推荐使用默认参数设置，即设置为0，这样checkpoint会自动保存到对应的logger版本日志中去。
 
 ```
 |___output_skin100

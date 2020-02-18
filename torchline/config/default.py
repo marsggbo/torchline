@@ -116,8 +116,7 @@ _C.dataloader.sample_test = "default"
 # model
 # ---------------------------------------------------------------------------- #
 _C.model = CN()
-_C.model.meta_arch = 'Resnet50'
-_C.model.WEIGHTS = ""
+_C.model.name = 'Resnet50'
 _C.model.classes = 10
 _C.model.pretrained = True
 _C.model.finetune = False
@@ -159,24 +158,29 @@ _C.optim.scheduler.milestones = [10, 25, 35, 50]
 _C.loss = CN()
 _C.loss.name = 'CrossEntropy'
 _C.loss.class_weight = []
+_C.loss.label_smoothing = 0.1 # CrossEntropyLabelSmooth
 
+_C.loss.focal_loss = CN()
+_C.loss.focal_loss.alpha = [] # FocalLoss
+_C.loss.focal_loss.gamma = 2
+_C.loss.focal_loss.size_average = True
 # ---------------------------------------------------------------------------- #
 # hooks
 # ---------------------------------------------------------------------------- #
 _C.hooks = CN()
 
 ## EarlyStopping
-_C.hooks.early-stopping = CN()
-_C.hooks.early-stopping.type = 2 # 0: True 1: False 2: custom
-_C.hooks.early-stopping.monitor = 'val_loss'
-_C.hooks.early-stopping.min_delta = 0.
-_C.hooks.early-stopping.patience = 10
-_C.hooks.early-stopping.mode = 'min'
-_C.hooks.early-stopping.verbose = 1
+_C.hooks.early_stopping = CN()
+_C.hooks.early_stopping.setting = 2 # 0: True 1: False 2: custom
+_C.hooks.early_stopping.monitor = 'val_loss'
+_C.hooks.early_stopping.min_delta = 0.
+_C.hooks.early_stopping.patience = 10
+_C.hooks.early_stopping.mode = 'min'
+_C.hooks.early_stopping.verbose = 1
 
 # ModelCheckpoint
 _C.hooks.model_checkpoint = CN()
-_C.hooks.model_checkpoint.type = 0 # 0: True 1: False 2: custom
+_C.hooks.model_checkpoint.setting = 0 # 0: True 1: False 2: custom
 _C.hooks.model_checkpoint.filepath = '' # the empty file path is recommended
 _C.hooks.model_checkpoint.monitor = 'val_loss'
 _C.hooks.model_checkpoint.mode = 'min'
@@ -187,35 +191,56 @@ _C.hooks.model_checkpoint.verbose = 1
 # Module template 
 # ---------------------------------------------------------------------------- #
 
-_C.module_template = CN()
-_C.module_template.name = 'LightningTemplateModel'
+_C.module = CN()
+_C.module.name = 'DefaultModule'
 
 # ---------------------------------------------------------------------------- #
 # Trainer 
 # ---------------------------------------------------------------------------- #
 
 _C.trainer = CN()
-_C.trainer.ACCUMULATE_GRAD_BATCHES = 1
-_C.trainer.min_epochs = 30
-_C.trainer.MAX_EPOCHS = 1000
-_C.trainer.grad_clip_val = 0.5 # clip gradient of which norm is larger than 0.5
-_C.trainer.show_progress_bar = True # show progree bar
-_C.trainer.row_log_interval = 100 # Every k batches lightning will make an entry in the metrics log
-_C.trainer.log_save_interval = 100 # Every k batches, lightning will write the new logs to disk, ie: save a .csv log file every 100 batches
+_C.trainer.name = 'DefaultTrainer'
 _C.trainer.default_save_path = './output'
-_C.trainer.log_gpu_memory = "" # 'min_max': log only the min/max utilization
+_C.trainer.gradient_clip_val = 0
+_C.trainer.process_position = 0
+_C.trainer.num_nodes = 1
+_C.trainer.gpus = '' # list/str/int todo
+_C.trainer.log_gpu_memory = ""
+_C.trainer.show_progress_bar = True
+_C.trainer.overfit_pct = 0.0 # if 0<overfit_pct<1, (e.g. overfit_pct = 0.1) then train, val, test only 10% data.
+_C.trainer.track_grad_norm = -1 # -1 no tracking. Otherwise tracks that norm. if equals to 2, then 2-norm will be traced
+_C.trainer.check_val_every_n_epoch = 1
 _C.trainer.fast_dev_run = False # everything only with 1 training and 1 validation batch.
+_C.trainer.accumulate_grad_batches = 1
+_C.trainer.max_epochs = 100
+_C.trainer.min_epochs = 1
+_C.trainer.train_percent_check = 1.0
+_C.trainer.val_percent_check = 1.0
+_C.trainer.test_percent_check = 1.0
+_C.trainer.val_check_interval = 1.0
+_C.trainer.log_save_interval = 100 # Writes logs to disk this often
+_C.trainer.row_log_interval = 10 # How often to add logging rows (does not write to disk)
+_C.trainer.distributed_backend = 'dp' # 'dp', 'ddp', 'ddp2'.
+_C.trainer.use_amp = False
+_C.trainer.print_nan_grads = True # Prints gradients with nan values
+_C.trainer.weights_summary = '' # 'full', 'top', None.
+_C.trainer.weights_save_path = ''
+_C.trainer.amp_level = 'O1'
+_C.trainer.num_sanity_val_steps = 5
+_C.trainer.truncated_bptt_steps = ''
+_C.trainer.resume_from_checkpoint = ''
+# _C.trainer.profiler = ''
+
 
 _C.trainer.logger = CN()
+_C.trainer.logger.type = 'test_tube'
 _C.trainer.logger.setting = 0 # 0: True  1: False  2: custom
-_C.trainer.logger.type = 'mlflow'
 _C.trainer.logger.mlflow = CN()
 _C.trainer.logger.mlflow.experiment_name = 'torchline_logs'
 _C.trainer.logger.mlflow.tracking_uri = _C.trainer.default_save_path
 _C.trainer.logger.test_tube = CN()
 _C.trainer.logger.test_tube.name = 'torchline_logs'
 _C.trainer.logger.test_tube.save_dir = _C.trainer.default_save_path
-_C.trainer.logger.test_tube.debug = False
 _C.trainer.logger.test_tube.version = -1 #  # if <0, then use default version. Otherwise, it will restore the version.
 
 
@@ -224,6 +249,7 @@ _C.trainer.logger.test_tube.version = -1 #  # if <0, then use default version. O
 # ---------------------------------------------------------------------------- #
 
 _C.log = CN()
+_C.log.path = ''
 _C.log.name = 'log.txt'
 
 # ---------------------------------------------------------------------------- #
@@ -233,7 +259,7 @@ _C.log.name = 'log.txt'
 _C.SEED = 666
 _C.DEFAULT_CUDNN_BENCHMARK = True
 
-_C.TOPK = [1, 3] # save the top k results., e.g. acc@1 and acc@3
+_C.topk = [1, 3] # save the top k results., e.g. acc@1 and acc@3
 
 _C.predict_only = CN()
 _C.predict_only.type = 'ckpt'

@@ -1,2 +1,2 @@
-from .lightning_module_template import LightningTemplateModel
-from .build import MODULE_TEMPLATE_REGISTRY, build_module_template
+from .default_module import DefaultModule
+from .build import MODULE_REGISTRY, build_module

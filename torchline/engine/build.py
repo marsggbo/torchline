@@ -1,18 +1,18 @@
 
 from torchline.utils import Registry, Logger
 
-MODULE_TEMPLATE_REGISTRY = Registry('module_template')
-MODULE_TEMPLATE_REGISTRY.__doc__ = """
-Registry for module template, e.g. LightningTemplateModel.
+MODULE_REGISTRY = Registry('MODULE')
+MODULE_REGISTRY.__doc__ = """
+Registry for module template, e.g. DefaultModule.
 
 The registered object will be called with `obj(cfg)`
 """
 
-def build_module_template(cfg):
+def build_module(cfg):
     """
-    Built the module template, defined by `cfg.module_template.name`.
+    Built the module template, defined by `cfg.module.name`.
     """
-    name = cfg.module_template.name
-    return MODULE_TEMPLATE_REGISTRY.get(name)(cfg)
+    name = cfg.module.name
+    return MODULE_REGISTRY.get(name)(cfg)
 
     

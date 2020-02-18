@@ -18,7 +18,7 @@
     - build_transforms
     - build_label_transforms
   - engine
-    - build_module_template
+    - build_module
   - losses
     - build_loss_fn
   - models
@@ -41,13 +41,23 @@
 
 ### todo list
 
+
+## v0.2
+
+### 2020.02.18
+
+- 优化代码逻辑
+- 抽象化出`trainer`类
+- `trainer`负责整个计算逻辑, `engine`下定义的`DefaultModule`用来指定具体的步骤包括：模型，优化器，训练、验证、测试过程，以及数据的读取等，`models`中则是定义了具体的模型，如resnet等。
+
+
 - [x] 弄清楚logging机制
 - [x] save和load模型，优化器参数
 - [x] skin数据集读取测试
 - [x] 构建skin project
 - [x] 能否预测单张图片？
-- [ ] 构建一个简单的API接口
-- [ ] 进一步完善包导入
+- [x] 构建一个简单的API接口
+- [x] 进一步完善包导入
 - [ ] 完善使用文档
 - [x] 设置训练epoch数量
 - [X] 内建更多SOTA模型

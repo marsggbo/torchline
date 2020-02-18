@@ -17,7 +17,7 @@ model_params = {
 class Pretrainedmodels(nn.Module):
     def __init__(self, cfg):
         super(Pretrainedmodels, self).__init__()
-        model_name = cfg.model.meta_arch
+        model_name = cfg.model.name
         img_size = cfg.input.size[0]
         assert img_size==model_params[model_name.lower()][1], "the img_size should be {model_params[model_name.lower()][1]}"
         num_classes = cfg.model.classes
@@ -41,7 +41,7 @@ class Pretrainedmodels(nn.Module):
 class Nasnetamobile(Pretrainedmodels):
     def __init__(self, cfg):
         super(Nasnetamobile, self).__init__(cfg)
-        
+
 
 @META_ARCH_REGISTRY.register()
 class Pnasnet5large(Pretrainedmodels):

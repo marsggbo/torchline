@@ -32,7 +32,6 @@ __all__ = [
     'DefaultTransforms'
 ]
 
-logger_print = Logger(__name__).getlog()
 
 def build_transforms(cfg):
     """
@@ -54,6 +53,7 @@ def build_label_transforms(cfg):
 class DefaultTransforms:
     def __init__(self, cfg):
         self.cfg = cfg
+        self.logger_print = Logger(__name__, cfg).getlogger()
         self.is_train = cfg.dataset.is_train
         self.mean = cfg.transforms.tensor.normalization.mean
         self.std = cfg.transforms.tensor.normalization.std
@@ -66,13 +66,13 @@ class DefaultTransforms:
     def get_transform(self):
         # validation transform
         if not self.is_train: 
-            logger_print.info('Generating validation transform ...')
+            self.logger_print.info('Generating validation transform ...')
             transform = self.valid_transform
-            logger_print.info(f'Valid transform={transform}')
+            self.logger_print.info(f'Valid transform={transform}')
         else:
-            logger_print.info('Generating training transform ...')
+            self.logger_print.info('Generating training transform ...')
             transform = self.train_transform
-            logger_print.info(f'Train transform={transform}')
+            self.logger_print.info(f'Train transform={transform}')
         return transform
 
 
@@ -89,7 +89,7 @@ class DefaultTransforms:
     def train_transform(self):
         # aug_imagenet
         if self.cfg.transforms.img.aug_imagenet:
-            logger_print.info('Using imagenet augmentation')
+            self.logger_print.info('Using imagenet augmentation')
             transform = transforms.Compose([
                 transforms.Resize(self.min_edge_size+1),
                 transforms.RandomCrop(self.min_edge_size, padding=self.padding),
@@ -99,7 +99,7 @@ class DefaultTransforms:
             ])
         # aug cifar
         elif self.cfg.transforms.img.aug_cifar:
-            logger_print.info('Using cifar augmentation')
+            self.logger_print.info('Using cifar augmentation')
             transform = transforms.Compose([
                 transforms.Resize(self.min_edge_size+1),
                 transforms.RandomCrop(self.min_edge_size, padding=self.padding),

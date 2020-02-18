@@ -1,17 +1,17 @@
 input:
     size: (224, 224)
 model:
-    meta_arch: 'Resnet50'
+    name: 'Resnet50'
     classes: 10
 dataset:
-    NAME: 'Skin10Dataset'
+    name: 'Skin10Dataset'
     dir: '../datasets/skin100_dataset/train'
     train_list: '../datasets/skin10_train.txt'
     valid_list: '../datasets/skin10_test.txt'
     test_list: '../datasets/skin10_test.txt'
     batch_size: 32
 transforms:
-    NAME: 'SkinTransforms'
+    name: 'SkinTransforms'
     tensor:
         normalization: 
             mean: [0.6054, 0.4433, 0.4084]
@@ -33,7 +33,7 @@ trainer:
         test_tube:
             save_dir: './output_skin100'
 hooks:
-    early-stopping:
+    early_stopping:
         type: 2
         patience: 20
         monitor: 'val_loss'

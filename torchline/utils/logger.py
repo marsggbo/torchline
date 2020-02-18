@@ -17,9 +17,11 @@ class Logger(object):
             将日志存入到指定的文件中
         '''
 
-        file = 'log.txt' if cfg is None else cfg.logger.log_file
         # 创建一个logger
-        file = cfg.logger.log_file
+        if cfg is None:
+            file = 'log.txt'
+        else:
+            file = cfg.log.name
         self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(logging.INFO)
         self.logger.propagate = False
@@ -40,5 +42,5 @@ class Logger(object):
         hdlr.close()
         strhdlr.close()
 
-    def getlog(self):
+    def getlogger(self):
         return self.logger

@@ -1,12 +1,12 @@
 input:
-    size: (32, 32)
+    size: (64, 64)
 model:
     name: 'Resnet50'
     classes: 10
 dataset:
-    name: 'CIFAR10'
+    name: 'fakedata'
     dir: './datasets/cifar10'
-    batch_size: 128
+    batch_size: 1
 optim:
     name: 'sgd'
     base_lr: 0.1
@@ -39,20 +39,18 @@ trainer:
     logger:
         setting: 0
         type: 'test_tube'
-        mlflow:
-            tracking_uri: './output_cifar10' 
         test_tube:
             save_dir: './output_cifar10'
             name: 'torchline_logs'
             version: -1 # if <0, then use default version
 hooks:
     early_stopping:
-        type: 2
+        setting: 2
         patience: 20
         monitor: 'val_acc_1'
         mode: 'max'
     model_checkpoint:
-        type: 2
+        setting: 2
         monitor: 'val_acc_1'
         mode: 'max'
         filepath: ''

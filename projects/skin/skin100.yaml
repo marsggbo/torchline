@@ -1,10 +1,10 @@
 input:
     size: (224, 224)
 model:
-    meta_arch: 'Nasnetamobile'
+    name: 'Nasnetamobile'
     classes: 100
 dataset:
-    NAME: 'Skin100Dataset'
+    name: 'Skin100Dataset'
     dir: '../datasets/skin100_dataset/train'
     train_list: '../datasets/skin100_train.txt'
     valid_list: '../datasets/skin100_test.txt'
@@ -32,14 +32,14 @@ loss:
     0.51270548, 3.32688889, 2.41467742, 1.59265957, 0.63436441,
     1.27957265, 4.82935484, 4.40323529, 3.56452381, 4.40323529]'
 optim:
-    NAME: 'sgd'
+    name: 'sgd'
     base_lr: 0.1
     scheduler:
-        NAME: 'MultiStepLR'
+        name: 'MultiStepLR'
         milestones: [30, 50, 70, 100]
         gamma: 0.1
 transforms:
-    NAME: 'SkinTransforms'
+    name: 'SkinTransforms'
     tensor:
         normalization: 
             mean: [0.6075, 0.4564, 0.4182]
@@ -77,7 +77,7 @@ trainer:
             name: 'torchline_logs'
             version: -1 # if <0, then use default version
 hooks:
-    early-stopping:
+    early_stopping:
         type: 2
         patience: 20
         monitor: 'val_acc_1'
@@ -87,7 +87,7 @@ hooks:
         monitor: 'val_acc_1'
         mode: 'max'
         filepath: '' # please do not specify
-TOPK: [1, 5]
+topk: [1, 5]
 predict_only:
     type: 'ckpt'
     to_pred_file_path: '' # specify the path of images

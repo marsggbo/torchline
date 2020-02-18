@@ -21,10 +21,10 @@ from torchline.data import build_data, build_sampler
 from torchline.losses import build_loss_fn
 from torchline.models import build_model
 from torchline.utils import topk_acc
-from .build import MODULE_TEMPLATE_REGISTRY
+from .build import MODULE_REGISTRY
 
-@MODULE_TEMPLATE_REGISTRY.register()
-class LightningTemplateModel(LightningModule):
+@MODULE_REGISTRY.register()
+class DefaultModule(LightningModule):
     """
     Sample model to show how to define a template
     """
@@ -35,10 +35,9 @@ class LightningTemplateModel(LightningModule):
         :param cfg:
         """
         # init superclass
-        super(LightningTemplateModel, self).__init__()
+        super(DefaultModule, self).__init__()
         self.cfg = cfg
         self.hparams = self.cfg.hparams
-        self.topk = cfg.TOPK
         self.batch_size = self.cfg.dataset.batch_size
 
         # if you specify an example input, the summary will show input/output for each layer
@@ -121,9 +120,9 @@ class LightningTemplateModel(LightningModule):
         loss_val = self.loss(predictions, gt_labels)
 
         # acc
-        acc_results = topk_acc(predictions, gt_labels, self.topk)
+        acc_results = topk_acc(predictions, gt_labels, self.cfg.topk)
         tqdm_dict = {}
-        for i, k in enumerate(self.topk):
+        for i, k in enumerate(self.cfg.topk):
             tqdm_dict[f'train_acc_{k}'] = acc_results[i]
 
         # in DP mode (default) make sure if result is scalar, there's another dim in the beginning
@@ -157,7 +156,7 @@ class LightningTemplateModel(LightningModule):
         loss_val = self.loss(predictions, gt_labels)
 
         # acc
-        val_acc_1, val_acc_k = topk_acc(predictions, gt_labels, self.topk)
+        val_acc_1, val_acc_k = topk_acc(predictions, gt_labels, self.cfg.topk)
 
         if self.on_gpu:
             val_acc_1 = val_acc_1.cuda(loss_val.device.index)
@@ -172,7 +171,7 @@ class LightningTemplateModel(LightningModule):
         output = OrderedDict({
             'val_loss': loss_val,
             'val_acc_1': val_acc_1,
-            f'val_acc_{self.topk[-1]}': val_acc_k,
+            f'val_acc_{self.cfg.topk[-1]}': val_acc_k,
         })
         if self.current_epoch==0 and batch_idx==0:
             if not os.path.exists('train_valid_samples'):
@@ -206,7 +205,7 @@ class LightningTemplateModel(LightningModule):
 
             # reduce manually when using dp
             val_acc_1 = output['val_acc_1']
-            val_acc_k = output[f'val_acc_{self.topk[-1]}']
+            val_acc_k = output[f'val_acc_{self.cfg.topk[-1]}']
             if self.trainer.use_dp or self.trainer.use_ddp2:
                 val_acc_1 = torch.mean(val_acc_1)
                 val_acc_k = torch.mean(val_acc_k)
@@ -218,7 +217,7 @@ class LightningTemplateModel(LightningModule):
         val_acc_1_mean /= len(outputs)
         val_acc_k_mean /= len(outputs)
         tqdm_dict = {'val_loss': val_loss_mean, 'val_acc_1': val_acc_1_mean, 
-                                                f'val_acc_{self.topk[-1]}': val_acc_k_mean}
+                                                f'val_acc_{self.cfg.topk[-1]}': val_acc_k_mean}
         result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'val_loss': val_loss_mean}
         return result
 
@@ -257,7 +256,7 @@ class LightningTemplateModel(LightningModule):
         '''
         scheduler_name = self.cfg.optim.scheduler.name
         if scheduler_name.lower() == 'CosineAnnealingLR'.lower():
-            return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+            return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.optim.scheduler.t_max)
         elif scheduler_name.lower() == 'StepLR'.lower():
             step_size = self.cfg.optim.scheduler.step_size
             gamma = self.cfg.optim.scheduler.gamma

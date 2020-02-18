@@ -19,10 +19,10 @@ from data import *
 from losses import FocalLoss
 from models import *
 from torchline.config import get_cfg
-from torchline.engine import build_module_template
+from torchline.engine import build_module
 from torchline.utils import Logger, get_imgs_to_predict
 
-logger_print = Logger(__name__).getlog()
+logger_print = Logger(__name__).getlogger()
 
 def parse_cfg_param(cfg_item):
     return cfg_item if cfg_item else None
@@ -78,7 +78,7 @@ class MyTrainer(Trainer):
             'distributed_backend': hparams.distributed_backend,
 
             'min_epochs' : cfg.trainer.min_epochs,
-            'max_epochs' : cfg.trainer.MAX_EPOCHS,
+            'max_epochs' : cfg.trainer.max_epochs,
             'gradient_clip_val' : cfg.trainer.grad_clip_val,
             'show_progress_bar' : cfg.trainer.show_progress_bar,
             'row_log_interval' : cfg.trainer.row_log_interval,
@@ -161,24 +161,24 @@ class MyTrainer(Trainer):
     def _early_stop_callback(self):
         # early_stop_callback hooks
         hooks = self.cfg.hooks
-        params = {key: hooks.early-stopping[key] for key in hooks.early-stopping if key != 'type'}
+        params = {key: hooks.early_stopping[key] for key in hooks.early_stopping if key != 'type'}
         early_stop_callbacks = {
             0: True,  # default setting
             1: False, # do not use early stopping
             2: EarlyStopping(**params) # use custom setting
         }
-        assert hooks.early-stopping.type in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
-        early_stop_callback = early_stop_callbacks[hooks.early-stopping.type]
+        assert hooks.early_stopping.setting in early_stop_callbacks, 'The type of early stopping can only be in [0,1,2]'
+        early_stop_callback = early_stop_callbacks[hooks.early_stopping.setting]
         return early_stop_callback
 
     def _checkpoint_callback(self):
         # checkpoint_callback hooks
         hooks = self.cfg.hooks
-        assert hooks.model_checkpoint.type in [0,1,2], "You can only set three ckpt levels [0,1,2], but you set {}".format(hooks.model_checkpoint.type)
+        assert hooks.model_checkpoint.setting in [0,1,2], "You can only set three ckpt levels [0,1,2], but you set {}".format(hooks.model_checkpoint.setting)
 
         logger = self.logger
         params = {key: hooks.model_checkpoint[key] for key in hooks.model_checkpoint if key != 'type'}
-        if hooks.model_checkpoint.type==2:
+        if hooks.model_checkpoint.setting==2:
             if hooks.model_checkpoint.filepath.strip()=='':
                 filepath = os.path.join(self.cfg.trainer.default_save_path, logger.name,
                                 f'version_{logger.version}','checkpoints')
@@ -190,7 +190,7 @@ class MyTrainer(Trainer):
             1: False,
             2: ModelCheckpoint(**params)
         }
-        checkpoint_callback = checkpoint_callbacks[hooks.model_checkpoint.type]
+        checkpoint_callback = checkpoint_callbacks[hooks.model_checkpoint.setting]
         return checkpoint_callback
 
 def main(hparams):
@@ -206,12 +206,12 @@ def main(hparams):
         predict_only = cfg.predict_only
         if predict_only.type == 'ckpt':
             load_params = {key: predict_only.load_ckpt[key] for key in predict_only.load_ckpt}
-            model = build_module_template(cfg)
+            model = build_module(cfg)
             ckpt_path = load_params['checkpoint_path']
             model.load_state_dict(torch.load(ckpt_path)['state_dict'])
         elif predict_only.type == 'metrics':
             load_params = {key: predict_only.load_metric[key] for key in predict_only.load_metric}
-            model = build_module_template(cfg).load_from_metrics(**load_params)
+            model = build_module(cfg).load_from_metrics(**load_params)
         else:
             print(f'{cfg.predict_only.type} not supported')
             raise NotImplementedError
@@ -233,11 +233,11 @@ def main(hparams):
             print(f"{file} is {classes[index]}")
         return predictions.cpu()
     elif hasattr(hparams, "test_only") and hparams.test_only:
-        model = build_module_template(cfg)
+        model = build_module(cfg)
         trainer = MyTrainer(cfg, hparams)
         trainer.test(model)
     else:
-        model = build_module_template(cfg)
+        model = build_module(cfg)
         trainer = MyTrainer(cfg, hparams)
         trainer.fit(model)
 
