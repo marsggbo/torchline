@@ -7,6 +7,10 @@ Registry for dataset, i.e. torch.utils.data.Dataset.
 The registered object will be called with `obj(cfg)`
 """
 
+__all__ = [
+    'DATASET_REGISTRY',
+    'build_data'
+]
 
 def build_data(cfg):
     """

@@ -29,7 +29,8 @@ __all__ = [
     'build_label_transforms',
     'TRANSFORMS_REGISTRY',
     'LABEL_TRANSFORMS_REGISTRY',
-    'DefaultTransforms'
+    'DefaultTransforms',
+    'BaseTransforms'
 ]
 
 
@@ -49,11 +50,27 @@ def build_label_transforms(cfg):
         return None
     return LABEL_TRANSFORMS_REGISTRY.get(name)(cfg)
 
-@TRANSFORMS_REGISTRY.register()
-class DefaultTransforms:
+class BaseTransforms(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.logger_print = Logger(__name__, cfg).getlogger()
+        self.is_train = cfg.dataset.is_train
+        
+    def get_transform(self):
+        raise NotImplementedError
+
+    @property
+    def valid_transform(self):
+        raise NotImplementedError
+
+    @property
+    def train_transform(self):
+        raise NotImplementedError
+
+
+@TRANSFORMS_REGISTRY.register()
+class DefaultTransforms(BaseTransforms):
+    def __init__(self, cfg):
         self.is_train = cfg.dataset.is_train
         self.mean = cfg.transforms.tensor.normalization.mean
         self.std = cfg.transforms.tensor.normalization.std

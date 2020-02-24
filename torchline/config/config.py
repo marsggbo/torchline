@@ -59,7 +59,8 @@ class CfgNode(_CfgNode):
         src_cfg_file = hparams.config_file # source config file
         cfg_file_name = os.path.basename(src_cfg_file) # config file name
         dst_cfg_file = os.path.join(self.log.path, cfg_file_name)
-        shutil.copy(src_cfg_file, dst_cfg_file)
+        with open(dst_cfg_file, 'w') as f:
+            f.write(str(self))
 
         if not (hparams.test_only or hparams.predict_only):
             torch.backends.cudnn.benchmark = False

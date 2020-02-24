@@ -1,4 +1,5 @@
 import torch
+import torchvision
 from torchline.utils import Registry, Logger
 
 SAMPLER_REGISTRY = Registry('SAMPLER')
@@ -8,6 +9,10 @@ Registry for dataset sampler, i.e. torch.utils.data.Sampler.
 The registered object will be called with `obj(cfg)`
 """
 
+__all__ = [
+    'build_sampler',
+    'SAMPLER_REGISTRY'
+]
 
 def build_sampler(cfg):
     """

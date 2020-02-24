@@ -1,4 +1,4 @@
-from .build import build_model, META_ARCH_REGISTRY
+from .build import *
 # from .resnet_models import *
 from .resnet import *
 from .pnasnet import *

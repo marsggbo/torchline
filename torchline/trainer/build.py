@@ -8,6 +8,10 @@ The registered object will be called with `obj(cfg)`
 and expected to return a `nn.Module` object.
 """
 
+__all__ = [
+    'TRAINER_REGISTRY',
+    'build_trainer',
+]
 
 def build_trainer(cfg, hparams):
     """

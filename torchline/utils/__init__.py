@@ -1,3 +1,3 @@
-from .logger import Logger
-from .registry import Registry
+from .logger import *
+from .registry import *
 from .utils import *

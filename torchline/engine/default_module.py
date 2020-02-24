@@ -23,6 +23,10 @@ from torchline.models import build_model
 from torchline.utils import topk_acc
 from .build import MODULE_REGISTRY
 
+__all__ = [
+    'DefaultModule'
+]
+
 @MODULE_REGISTRY.register()
 class DefaultModule(LightningModule):
     """

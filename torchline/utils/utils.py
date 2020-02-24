@@ -5,6 +5,11 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
+__all__ = [
+    'image_loader',
+    'get_imgs_to_predict',
+    'topk_acc'
+]
 
 def image_loader(filename, cfg):
     '''load an image and convert it to tensor

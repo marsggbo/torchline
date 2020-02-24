@@ -1,3 +1,3 @@
-from .build import build_loss_fn, LOSS_FN_REGISTRY
-from .loss import CrossEntropy, CrossEntropyLabelSmooth
-from .focal_loss import FocalLoss
+from .build import *
+from .loss import *
+from .focal_loss import *

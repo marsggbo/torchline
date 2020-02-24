@@ -4,9 +4,10 @@ import numpy as np
 import math
 import random
 
-## todo
-# def softlabel(label):
-#     return label
+__all__ = [
+    'Cutout',
+    'RandomErasing'
+]
 
 class Cutout(object):
     """Randomly mask out one or more patches from an image.

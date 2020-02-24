@@ -4,6 +4,9 @@
 
 from typing import Dict, Optional
 
+__all__ = [
+    'Registry'
+]
 
 class Registry(object):
     '''

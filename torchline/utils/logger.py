@@ -5,12 +5,11 @@ import logging
 import time
 import os
 
+__all__ = [
+    'Logger'
+]
 
 class Logger(object):
-    '''
-    封装后的logging
-    '''
-
     def __init__(self, logger_name=None, cfg=None):
         '''
             指定保存日志的文件路径，日志级别，以及调用文件
@@ -29,17 +28,18 @@ class Logger(object):
             self.logger.handlers.clear()
         formatter = logging.Formatter('[%(asctime)s] %(filename)s->%(funcName)s line:%(lineno)d [%(levelname)s]%(message)s')
 
-        hdlr = logging.FileHandler(file, 'a', encoding='utf-8')
-        hdlr.setLevel(logging.INFO)
-        hdlr.setFormatter(formatter)
-        self.logger.addHandler(hdlr)
+        if file:
+            hdlr = logging.FileHandler(file, 'a', encoding='utf-8')
+            hdlr.setLevel(logging.INFO)
+            hdlr.setFormatter(formatter)
+            self.logger.addHandler(hdlr)
 
         strhdlr = logging.StreamHandler()
         strhdlr.setLevel(logging.INFO)
         strhdlr.setFormatter(formatter)
         self.logger.addHandler(strhdlr)
 
-        hdlr.close()
+        if file: hdlr.close()
         strhdlr.close()
 
     def getlogger(self):

@@ -8,6 +8,10 @@ The registered object will be called with `obj(cfg)`
 and expected to return a `nn.Module` object.
 """
 
+__all__ = [
+    'build_model',
+    'META_ARCH_REGISTRY'
+]
 
 def build_model(cfg):
     """

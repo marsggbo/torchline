@@ -9,9 +9,10 @@ from torchline.utils import Logger
 
 from .build import TRAINER_REGISTRY
 
+__all__ = [
+    'DefaultTrainer'
+]
 
-def parse_cfg_param(cfg_item):
-    return cfg_item if cfg_item not in ['', []] else None
 
 @TRAINER_REGISTRY.register()
 class DefaultTrainer(Trainer):
@@ -33,10 +34,13 @@ class DefaultTrainer(Trainer):
         })
         self.trainer_params.pop('name')
         for key in self.trainer_params:
-            self.trainer_params[key] = parse_cfg_param(self.trainer_params[key])
+            self.trainer_params[key] = self.parse_cfg_param(self.trainer_params[key])
             
         super(DefaultTrainer, self).__init__(**self.trainer_params)
-    
+
+    def parse_cfg_param(self, cfg_item):
+        return cfg_item if cfg_item not in ['', []] else None
+
     def _logger(self):
 
         # logger

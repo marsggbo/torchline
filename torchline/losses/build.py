@@ -7,6 +7,10 @@ Registry for loss function, e.g. cross entropy loss.
 The registered object will be called with `obj(cfg)`
 """
 
+__all__ = [
+    'build_loss_fn',
+    'LOSS_FN_REGISTRY'
+]
 
 def build_loss_fn(cfg):
     """
