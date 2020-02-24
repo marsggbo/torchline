@@ -57,7 +57,15 @@ class BaseTransforms(object):
         self.is_train = cfg.dataset.is_train
         
     def get_transform(self):
-        raise NotImplementedError
+        if not self.is_train: 
+            self.logger_print.info('Generating validation transform ...')
+            transform = self.valid_transform
+            self.logger_print.info(f'Valid transform={transform}')
+        else:
+            self.logger_print.info('Generating training transform ...')
+            transform = self.train_transform
+            self.logger_print.info(f'Train transform={transform}')
+        return transform
 
     @property
     def valid_transform(self):
@@ -79,19 +87,6 @@ class DefaultTransforms(BaseTransforms):
         self.min_edge_size = min(self.img_size)
         self.normalize = transforms.Normalize(self.mean, self.std)
         self.transform = self.get_transform()
-
-    def get_transform(self):
-        # validation transform
-        if not self.is_train: 
-            self.logger_print.info('Generating validation transform ...')
-            transform = self.valid_transform
-            self.logger_print.info(f'Valid transform={transform}')
-        else:
-            self.logger_print.info('Generating training transform ...')
-            transform = self.train_transform
-            self.logger_print.info(f'Train transform={transform}')
-        return transform
-
 
     @property
     def valid_transform(self):
