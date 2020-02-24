@@ -27,34 +27,7 @@ def main(hparams):
 
     cfg = get_cfg()
     cfg.setup_cfg_with_hparams(hparams)
-    # only predict on some samples
-    if hasattr(hparams, "predict_only") and hparams.predict_only:
-        predict_only = cfg.predict_only
-        if predict_only.type == 'ckpt':
-            load_params = {key: predict_only.load_ckpt[key] for key in predict_only.load_ckpt}
-            model = build_module(cfg)
-            ckpt_path = load_params['checkpoint_path']
-            model.load_state_dict(torch.load(ckpt_path)['state_dict'])
-        elif predict_only.type == 'metrics':
-            load_params = {key: predict_only.load_metric[key] for key in predict_only.load_metric}
-            model = build_module(cfg).load_from_metrics(**load_params)
-        else:
-            print(f'{cfg.predict_only.type} not supported')
-            raise NotImplementedError
-
-        model.eval()
-        model.freeze() 
-        images = get_imgs_to_predict(cfg.predict_only.to_pred_file_path, cfg)
-        if torch.cuda.is_available():
-            images['img_data'] = images['img_data'].cuda()
-            model = model.cuda()
-        predictions = model(images['img_data'])
-        class_indices = torch.argmax(predictions, dim=1)
-        for i, file in enumerate(images['img_file']):
-            index = class_indices[i]
-            print(f"{file} is {classes[index]}")
-        return predictions.cpu()
-    elif hasattr(hparams, "test_only") and hparams.test_only:
+    if hasattr(hparams, "test_only") and hparams.test_only:
         model = build_module(cfg)
         trainer = build_trainer(cfg, hparams)
         trainer.test(model)
