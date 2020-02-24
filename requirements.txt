@@ -3,5 +3,5 @@ torchvision>=0.4.0
 yacs==0.1.6
 pytorch-lightning>=0.6.0
 pretrainedmodels>=0.7.4
-pillow==6.0.0
+pillow>=6.2.0
 test-tube==0.7.5
