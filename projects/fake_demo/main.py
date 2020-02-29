@@ -12,12 +12,28 @@ from argparse import ArgumentParser
 import numpy as np
 import torch
 
+from torchline.models import META_ARCH_REGISTRY
 from torchline.trainer import build_trainer
 from torchline.config import get_cfg
 from torchline.engine import build_module
 from torchline.utils import Logger, get_imgs_to_predict
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+@META_ARCH_REGISTRY.register()
+class FakeNet(torch.nn.Module):
+    def __init__(self, cfg):
+        super(FakeNet, self).__init__()
+        self.cfg = cfg
+        h, w = cfg.input.size
+        self.feat = torch.nn.Conv2d(3,16,3,1,1)
+        self.clf = torch.nn.Linear(16, cfg.model.classes)
+        print(self)
+
+    def forward(self, x):
+        b = x.shape[0]
+        out = self.feat(x)
+        out = torch.nn.AdaptiveAvgPool2d(1)(out).view(b, -1)
+        out = self.clf(out)
+        return out
 
 def main(hparams):
     """

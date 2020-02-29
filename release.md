@@ -59,6 +59,13 @@
 
 - config输出格式化
 
+## v0.2.3.0
+
+- 增加新的输出日志的方式（即logging），日志可保存到文件方便查看。之前默认使用tqdm，一个比较大的缺点时无法清晰的看到模型是否开始收敛。
+- 引入`AverageMeterGroup`等来记录各项指标，能更清晰地看出整体收敛趋势
+- 更新`fake_data` demo
+- 修复`CosineAnnealingLR` 存在的bug
+
 # TODO list 
 
 

@@ -206,7 +206,7 @@ _C.trainer.process_position = 0
 _C.trainer.num_nodes = 1
 _C.trainer.gpus = [] # list
 _C.trainer.log_gpu_memory = ""
-_C.trainer.show_progress_bar = True
+_C.trainer.show_progress_bar = False
 _C.trainer.overfit_pct = 0.0 # if 0<overfit_pct<1, (e.g. overfit_pct = 0.1) then train, val, test only 10% data.
 _C.trainer.track_grad_norm = -1 # -1 no tracking. Otherwise tracks that norm. if equals to 2, then 2-norm will be traced
 _C.trainer.check_val_every_n_epoch = 1

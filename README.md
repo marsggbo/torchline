@@ -1,4 +1,4 @@
-# torchline v0.2.2
+# torchline v0.2.3.0
 Easy to use Pytorch
 
 # Dependences

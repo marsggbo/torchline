@@ -60,7 +60,10 @@ class CfgNode(_CfgNode):
         cfg_file_name = os.path.basename(src_cfg_file) # config file name
         dst_cfg_file = os.path.join(self.log.path, cfg_file_name)
         with open(dst_cfg_file, 'w') as f:
+            hparams = self.hparams
+            self.pop('hparams')
             f.write(str(self))
+            self.update({'hparams': hparams})
 
         if not (hparams.test_only or hparams.predict_only):
             torch.backends.cudnn.benchmark = False

@@ -1,5 +1,4 @@
 *.pyc
 dist
 build
-projects
 torchline.egg-info

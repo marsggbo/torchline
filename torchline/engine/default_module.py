@@ -20,7 +20,7 @@ import torchvision
 from torchline.data import build_data, build_sampler
 from torchline.losses import build_loss_fn
 from torchline.models import build_model
-from torchline.utils import topk_acc
+from torchline.utils import topk_acc, AverageMeterGroup
 from .build import MODULE_REGISTRY
 
 __all__ = [
@@ -110,12 +110,29 @@ class DefaultModule(LightningModule):
         loss_fn = self.build_loss_fn(self.cfg)
         return loss_fn(predictions, gt_labels)
 
+    def print_log(self, batch_idx, is_train, inputs, save_examples=True):
+        _type = 'Train' if is_train else 'Val'
+        if not self.trainer.show_progress_bar and batch_idx % self.cfg.trainer.log_save_interval == 0:
+            crt_epoch, crt_step = self.trainer.current_epoch, batch_idx
+            all_epoch, all_step = self.trainer.max_epochs, self.trainer.num_training_batches
+            log_info = f"{_type} Epoch {crt_epoch}/{all_epoch} step {crt_step}/{all_step} {self.meters}" 
+            self.trainer.logger_print.info(log_info)
+
+        if self.current_epoch==0 and batch_idx==0 and save_examples:
+            if not os.path.exists('train_valid_samples'):
+                os.makedirs('train_valid_samples')
+            for i, img in enumerate(inputs[:5]):
+                torchvision.transforms.ToPILImage()(img.cpu()).save(f'./train_valid_samples/{_type}_img{i}.jpg')
+
     def training_step(self, batch, batch_idx):
         """
         Lightning calls this inside the training loop
         :param batch:
         :return:
         """
+        if batch_idx == 0:
+            self.meters = AverageMeterGroup() # reset meters at a new epoch
+
         # forward pass
         inputs, gt_labels = batch
         predictions = self.forward(inputs)
@@ -127,23 +144,21 @@ class DefaultModule(LightningModule):
         acc_results = topk_acc(predictions, gt_labels, self.cfg.topk)
         tqdm_dict = {}
         for i, k in enumerate(self.cfg.topk):
-            tqdm_dict[f'train_acc_{k}'] = acc_results[i]
+            tqdm_dict[f'train_acc_{k}'] = acc_results[i].item()
 
         # in DP mode (default) make sure if result is scalar, there's another dim in the beginning
         if self.trainer.use_dp or self.trainer.use_ddp2:
             loss_val = loss_val.unsqueeze(0)
 
-        tqdm_dict.update({'train_loss': loss_val})
+        tqdm_dict.update({'train_loss': loss_val.item()})
         output = OrderedDict({
             'loss': loss_val,
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
         })
-        if self.current_epoch==0 and batch_idx==0:
-            if not os.path.exists('train_valid_samples'):
-                os.makedirs('train_valid_samples')
-            for i, img in enumerate(inputs[:5]):
-                torchvision.transforms.ToPILImage()(img.cpu()).save(f'./train_valid_samples/train_img{i}.jpg')
+
+        self.meters.update(tqdm_dict)
+        self.print_log(batch_idx, True, inputs)
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
@@ -154,6 +169,8 @@ class DefaultModule(LightningModule):
         :param batch:
         :return:
         """
+        if batch_idx == 0:
+            self.meters = AverageMeterGroup() # reset meters at a new epoch
         inputs, gt_labels = batch
         predictions = self.forward(inputs)
 
@@ -177,11 +194,8 @@ class DefaultModule(LightningModule):
             'val_acc_1': val_acc_1,
             f'val_acc_{self.cfg.topk[-1]}': val_acc_k,
         })
-        if self.current_epoch==0 and batch_idx==0:
-            if not os.path.exists('train_valid_samples'):
-                os.makedirs('train_valid_samples')
-            for i, img in enumerate(inputs[:5]):
-                torchvision.transforms.ToPILImage()(img.cpu()).save(f'./train_valid_samples/train_img{i}.jpg')
+        self.meters.update(dict(output))
+        self.print_log(batch_idx, False, inputs)
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
