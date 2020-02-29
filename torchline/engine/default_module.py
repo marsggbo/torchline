@@ -260,7 +260,7 @@ class DefaultModule(LightningModule):
         '''
         scheduler_name = self.cfg.optim.scheduler.name
         if scheduler_name.lower() == 'CosineAnnealingLR'.lower():
-            return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.optim.scheduler.t_max)
+            return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.cfg.optim.scheduler.t_max)
         elif scheduler_name.lower() == 'StepLR'.lower():
             step_size = self.cfg.optim.scheduler.step_size
             gamma = self.cfg.optim.scheduler.gamma
