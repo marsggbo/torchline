@@ -172,7 +172,7 @@ _C.hooks = CN()
 ## EarlyStopping
 _C.hooks.early_stopping = CN()
 _C.hooks.early_stopping.setting = 2 # 0: True 1: False 2: custom
-_C.hooks.early_stopping.monitor = 'val_loss'
+_C.hooks.early_stopping.monitor = 'valid_loss'
 _C.hooks.early_stopping.min_delta = 0.
 _C.hooks.early_stopping.patience = 10
 _C.hooks.early_stopping.mode = 'min'
@@ -182,7 +182,7 @@ _C.hooks.early_stopping.verbose = 1
 _C.hooks.model_checkpoint = CN()
 _C.hooks.model_checkpoint.setting = 0 # 0: True 1: False 2: custom
 _C.hooks.model_checkpoint.filepath = '' # the empty file path is recommended
-_C.hooks.model_checkpoint.monitor = 'val_loss'
+_C.hooks.model_checkpoint.monitor = 'valid_loss'
 _C.hooks.model_checkpoint.mode = 'min'
 _C.hooks.model_checkpoint.verbose = 1
 

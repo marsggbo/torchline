@@ -66,6 +66,9 @@
 - 更新`fake_data` demo
 - 修复`CosineAnnealingLR` 存在的bug
 
+## v0.2.3.1
+- 优化`AverageMeterGroup`输出格式，方便阅读
+
 # TODO list 
 
 

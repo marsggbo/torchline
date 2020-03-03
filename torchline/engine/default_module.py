@@ -110,12 +110,24 @@ class DefaultModule(LightningModule):
         loss_fn = self.build_loss_fn(self.cfg)
         return loss_fn(predictions, gt_labels)
 
-    def print_log(self, batch_idx, is_train, inputs, save_examples=True):
-        _type = 'Train' if is_train else 'Val'
-        if not self.trainer.show_progress_bar and batch_idx % self.cfg.trainer.log_save_interval == 0:
+    def on_epoch_end(self):
+        self.trainer.logger_print.info(f'Final Train: {self.train_meters}')
+        self.trainer.logger_print.info(f'FInal Valid: {self.valid_meters}')
+        self.trainer.logger_print.info("===========================\n")
+
+    def print_log(self, batch_idx, is_train, inputs, meters, save_examples=False):
+        if is_train:
+            _type = 'Train'
+            all_step = self.trainer.num_training_batches
+        else:
+            _type = 'Valid'
+            all_step = self.trainer.total_batches - self.trainer.num_training_batches
+
+        flag = batch_idx % self.cfg.trainer.log_save_interval == 0
+        if not self.trainer.show_progress_bar and flag:
             crt_epoch, crt_step = self.trainer.current_epoch, batch_idx
-            all_epoch, all_step = self.trainer.max_epochs, self.trainer.num_training_batches
-            log_info = f"{_type} Epoch {crt_epoch}/{all_epoch} step {crt_step}/{all_step} {self.meters}" 
+            all_epoch = self.trainer.max_epochs
+            log_info = f"{_type} Epoch {crt_epoch}/{all_epoch} step {crt_step}/{all_step} {meters}" 
             self.trainer.logger_print.info(log_info)
 
         if self.current_epoch==0 and batch_idx==0 and save_examples:
@@ -131,7 +143,7 @@ class DefaultModule(LightningModule):
         :return:
         """
         if batch_idx == 0:
-            self.meters = AverageMeterGroup() # reset meters at a new epoch
+            self.train_meters = AverageMeterGroup() # reset meters at a new epoch
 
         # forward pass
         inputs, gt_labels = batch
@@ -143,22 +155,23 @@ class DefaultModule(LightningModule):
         # acc
         acc_results = topk_acc(predictions, gt_labels, self.cfg.topk)
         tqdm_dict = {}
-        for i, k in enumerate(self.cfg.topk):
-            tqdm_dict[f'train_acc_{k}'] = acc_results[i].item()
 
         # in DP mode (default) make sure if result is scalar, there's another dim in the beginning
         if self.trainer.use_dp or self.trainer.use_ddp2:
             loss_val = loss_val.unsqueeze(0)
 
         tqdm_dict.update({'train_loss': loss_val.item()})
+        for i, k in enumerate(self.cfg.topk):
+            tqdm_dict[f'train_acc_{k}'] = acc_results[i].item()
+
         output = OrderedDict({
             'loss': loss_val,
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
         })
 
-        self.meters.update(tqdm_dict)
-        self.print_log(batch_idx, True, inputs)
+        self.train_meters.update(tqdm_dict)
+        self.print_log(batch_idx, True, inputs, self.train_meters)
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
@@ -170,7 +183,7 @@ class DefaultModule(LightningModule):
         :return:
         """
         if batch_idx == 0:
-            self.meters = AverageMeterGroup() # reset meters at a new epoch
+            self.valid_meters = AverageMeterGroup() # reset meters at a new epoch
         inputs, gt_labels = batch
         predictions = self.forward(inputs)
 
@@ -190,12 +203,13 @@ class DefaultModule(LightningModule):
             val_acc_k = val_acc_k.unsqueeze(0)
         
         output = OrderedDict({
-            'val_loss': loss_val,
-            'val_acc_1': val_acc_1,
-            f'val_acc_{self.cfg.topk[-1]}': val_acc_k,
+            'valid_loss': loss_val,
+            'valid_acc_1': val_acc_1,
+            f'valid_acc_{self.cfg.topk[-1]}': val_acc_k,
         })
-        self.meters.update(dict(output))
-        self.print_log(batch_idx, False, inputs)
+        tqdm_dict = {k: v.item() for k, v in dict(output).items()}
+        self.valid_meters.update(tqdm_dict)
+        self.print_log(batch_idx, False, inputs, self.valid_meters)
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
@@ -214,7 +228,7 @@ class DefaultModule(LightningModule):
         val_acc_1_mean = 0
         val_acc_k_mean = 0
         for output in outputs:
-            val_loss = output['val_loss']
+            val_loss = output['valid_loss']
 
             # reduce manually when using dp
             if self.trainer.use_dp or self.trainer.use_ddp2:
@@ -222,8 +236,8 @@ class DefaultModule(LightningModule):
             val_loss_mean += val_loss
 
             # reduce manually when using dp
-            val_acc_1 = output['val_acc_1']
-            val_acc_k = output[f'val_acc_{self.cfg.topk[-1]}']
+            val_acc_1 = output['valid_acc_1']
+            val_acc_k = output[f'valid_acc_{self.cfg.topk[-1]}']
             if self.trainer.use_dp or self.trainer.use_ddp2:
                 val_acc_1 = torch.mean(val_acc_1)
                 val_acc_k = torch.mean(val_acc_k)
@@ -234,9 +248,9 @@ class DefaultModule(LightningModule):
         val_loss_mean /= len(outputs)
         val_acc_1_mean /= len(outputs)
         val_acc_k_mean /= len(outputs)
-        tqdm_dict = {'val_loss': val_loss_mean, 'val_acc_1': val_acc_1_mean, 
-                                                f'val_acc_{self.cfg.topk[-1]}': val_acc_k_mean}
-        result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'val_loss': val_loss_mean}
+        tqdm_dict = {'valid_loss': val_loss_mean, 'valid_acc_1': val_acc_1_mean, 
+                                                f'valid_acc_{self.cfg.topk[-1]}': val_acc_k_mean}
+        result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'valid_loss': val_loss_mean}
         return result
 
     def test_step(self, batch, batch_idx):
@@ -339,11 +353,3 @@ class DefaultModule(LightningModule):
     def test_dataloader(self):
         logging.info('test data loader called')
         return self.__dataloader(is_train=False)
-
-    # @classmethod
-    # def load_from_checkpoint(cls, checkpoint_path):
-    #     checkpoint = torch.load(checkpoint_path, map_location=lambda storage, loc: storage)
-    #     model = cls(cls.cfg)
-    #     model.load_state_dict(checkpoint['state_dict'])
-    #     model.on_load_checkpoint(checkpoint)
-    #     return model

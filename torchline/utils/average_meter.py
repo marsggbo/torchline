@@ -10,8 +10,9 @@ class AverageMeterGroup:
     Average meter group for multiple average meters.
     """
 
-    def __init__(self):
+    def __init__(self, verbose_type='avg'):
         self.meters = OrderedDict()
+        self.verbose_type = verbose_type
 
     def update(self, data):
         """
@@ -20,7 +21,7 @@ class AverageMeterGroup:
         """
         for k, v in data.items():
             if k not in self.meters:
-                self.meters[k] = AverageMeter(k, ":.4f")
+                self.meters[k] = AverageMeter(k, ":.4f", self.verbose_type)
             self.meters[k].update(v)
 
     def __getattr__(self, item):
@@ -48,11 +49,18 @@ class AverageMeter:
         Name to display.
     fmt : str
         Format string to print the values.
+    verbose_type : str
+        'all': value(avg)
+        'avg': avg
     """
 
-    def __init__(self, name, fmt=':f'):
+    def __init__(self, name, fmt=':f', verbose_type='avg'):
         self.name = name
         self.fmt = fmt
+        if verbose_type not in ['all', 'avg']:
+            print('Not supported verbose type, using default verbose, "avg"')
+            verbose_type = 'avg'
+        self.verbose_type = verbose_type
         self.reset()
 
     def reset(self):
@@ -80,7 +88,12 @@ class AverageMeter:
         self.avg = self.sum / self.count
 
     def __str__(self):
-        fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+        if self.verbose_type=='all':
+            fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+        elif self.verbose_type=='avg':
+            fmtstr = '{name} {avg' + self.fmt + '}'
+        else:
+            fmtstr = '{name} {avg' + self.fmt + '}'
         return fmtstr.format(**self.__dict__)
 
     def summary(self):

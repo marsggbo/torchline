@@ -17,14 +17,14 @@ hooks:
     early_stopping:
         min_delta: 0.0
         mode: 'max'
-        monitor: 'val_acc_1'
+        monitor: 'valid_acc_1'
         patience: 20
         setting: 2
         verbose: 1
     model_checkpoint:
         filepath: ''
         mode: 'max'
-        monitor: 'val_acc_1'
+        monitor: 'valid_acc_1'
         setting: 2
         verbose: 1
 input:
