@@ -79,6 +79,7 @@ class BaseTransforms(object):
 @TRANSFORMS_REGISTRY.register()
 class DefaultTransforms(BaseTransforms):
     def __init__(self, cfg):
+        super(DefaultTransforms, self).__init__(cfg)
         self.is_train = cfg.dataset.is_train
         self.mean = cfg.transforms.tensor.normalization.mean
         self.std = cfg.transforms.tensor.normalization.std
