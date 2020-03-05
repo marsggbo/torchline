@@ -7,7 +7,6 @@ import random
 import torchvision
 from torchvision import transforms
 from . import autoaugment
-from .data_utils import Cutout, RandomErasing
 from torchline.utils import Registry, Logger
 
 TRANSFORMS_REGISTRY = Registry('transforms')

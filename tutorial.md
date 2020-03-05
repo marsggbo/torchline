@@ -14,7 +14,7 @@
         - transform相关文件:
           - `transforms.py`: 提供`build_transforms`函数来构建`transforms`,并且该文件中包含了默认的transform类，即`DefaultTransforms`
           - `autoaugment.py`: Google提出的自动数据增强操作
-          - `data_utils.py`
+          - `albumentation_transforms`: 使用albumentations库做数据增广
     - `engine`: 
         - `default_module.py`: 提供了`LightningModule`的一个继承类模板
     - `losses`:
