@@ -47,6 +47,51 @@ _C.transforms.tensor.random_erasing.scale = (0.02, 0.3) # range of proportion of
 _C.transforms.tensor.random_erasing.ratio = (0.3, 3.3), # range of aspect ratio of erased area.
 
 
+# ---------------------------------------------------------------------------- #
+# albumentations transforms (abtfs)
+# ---------------------------------------------------------------------------- #
+
+_C.abtfs = CN()
+_C.abtfs.random_grid_shuffle = CN()
+_C.abtfs.random_grid_shuffle.enable = 0
+_C.abtfs.random_grid_shuffle.grid = 2
+
+_C.abtfs.channel_shuffle = CN()
+_C.abtfs.channel_shuffle.enable = 0
+
+_C.abtfs.channel_dropout = CN()
+_C.abtfs.channel_dropout.enable = 0
+_C.abtfs.channel_dropout.drop_range = (1, 1)
+_C.abtfs.channel_dropout.fill_value = 127
+
+_C.abtfs.noise = CN()
+_C.abtfs.noise.enable = 1
+
+_C.abtfs.blur = CN()
+_C.abtfs.blur.enable = 0
+
+_C.abtfs.rotate = CN()
+_C.abtfs.rotate.enable = 1
+
+_C.abtfs.bright = CN()
+_C.abtfs.bright.enable = 1
+
+_C.abtfs.distortion = CN()
+_C.abtfs.distortion.enable = 0
+
+_C.abtfs.hue = CN()
+_C.abtfs.hue.enable = 0
+
+_C.abtfs.cutout = CN()
+_C.abtfs.cutout.enable = 1
+_C.abtfs.cutout.num_holes = 10
+_C.abtfs.cutout.size = 20
+_C.abtfs.cutout.fill_value = 127
+
+# ---------------------------------------------------------------------------- #
+# torchvision transforms
+# ---------------------------------------------------------------------------- #
+
 ## transforms for PIL image
 _C.transforms.img = CN()
 

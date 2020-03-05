@@ -104,8 +104,7 @@ class DefaultTransforms(BaseTransforms):
         if self.cfg.transforms.img.aug_imagenet:
             self.logger_print.info('Using imagenet augmentation')
             transform = transforms.Compose([
-                transforms.Resize(self.min_edge_size+1),
-                transforms.RandomCrop(self.min_edge_size, padding=self.padding),
+                transforms.Resize(self.img_size),
                 autoaugment.ImageNetPolicy(),
                 transforms.ToTensor(),
                 self.normalize
@@ -114,8 +113,7 @@ class DefaultTransforms(BaseTransforms):
         elif self.cfg.transforms.img.aug_cifar:
             self.logger_print.info('Using cifar augmentation')
             transform = transforms.Compose([
-                transforms.Resize(self.min_edge_size+1),
-                transforms.RandomCrop(self.min_edge_size, padding=self.padding),
+                transforms.Resize(self.img_size),
                 autoaugment.CIFAR10Policy(),
                 transforms.ToTensor(),
                 self.normalize
@@ -124,7 +122,6 @@ class DefaultTransforms(BaseTransforms):
         else:
             transform = self.read_transform_from_cfg()
         return transform
-
 
     def read_transform_from_cfg(self):
         transform_list = []
@@ -135,7 +132,7 @@ class DefaultTransforms(BaseTransforms):
         if img_transforms.random_resized_crop.enable:
             transform_list.append(transforms.RandomResizedCrop(self.img_size))
         elif img_transforms.resize.enable:
-            transform_list.append(transforms.Resize(self.min_edge_size))
+            transform_list.append(transforms.Resize(self.img_size))
         if img_transforms.random_crop.enable:
             transform_list.append(transforms.RandomCrop(self.min_edge_size, padding=self.padding))
         elif img_transforms.center_crop.enable:

@@ -93,6 +93,43 @@ class DefaultModule(LightningModule):
         return build_sampler(cfg)
 
     # ---------------------
+    # Hooks
+    # ---------------------
+
+    def on_train_start(self):
+        ckpt_path = self.trainer.resume_from_checkpoint
+        print(ckpt_path)
+        if ckpt_path:
+            if os.path.exists(ckpt_path):
+                ckpt = torch.load(ckpt_path)
+                best = ckpt['checkpoint_callback_best']
+                self.trainer.logger_print.info(f"The best result of the ckpt is {best}")
+            else:
+                print(f'{ckpt_path} not exists')
+                raise NotImplementedError
+
+    def on_epoch_start(self):
+        # print current lr
+        if isinstance(self.trainer.optimizers, list):
+            if len(self.trainer.optimizers) == 1:
+                optimizer = self.trainer.optimizers[0]
+                lr = optimizer.param_groups[0]["lr"]
+                print(f"lr={lr:.4e}")
+            else:
+                for index, optimizer in enumerate(self.trainer.optimizers):
+                    lr = optimizer.param_groups[0]["lr"]
+                    name = str(optimizer).split('(')[0].strip()
+                    self.trainer.logger_print.info(f"lr of {name}_{index} is {lr:.4e} ")
+        else:
+            lr = self.trainer.optimizers.param_groups[0]["lr"]
+            print(f"lr={lr:.4e}")
+
+    def on_epoch_end(self):
+        self.trainer.logger_print.info(f'Final Train: {self.train_meters}')
+        self.trainer.logger_print.info(f'FInal Valid: {self.valid_meters}')
+        self.trainer.logger_print.info("===========================\n")
+
+    # ---------------------
     # TRAINING
     # ---------------------
     
@@ -109,11 +146,6 @@ class DefaultModule(LightningModule):
     def loss(self, predictions, gt_labels):
         loss_fn = self.build_loss_fn(self.cfg)
         return loss_fn(predictions, gt_labels)
-
-    def on_epoch_end(self):
-        self.trainer.logger_print.info(f'Final Train: {self.train_meters}')
-        self.trainer.logger_print.info(f'FInal Valid: {self.valid_meters}')
-        self.trainer.logger_print.info("===========================\n")
 
     def print_log(self, batch_idx, is_train, inputs, meters, save_examples=False):
         if is_train:
@@ -279,7 +311,6 @@ class DefaultModule(LightningModule):
             print(f"{optim_name} not implemented")
             raise NotImplementedError
 
-    
     @classmethod
     def generate_scheduler(cls, optimizer, scheduler_name, **params):
         '''

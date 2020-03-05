@@ -73,6 +73,11 @@
 - 优化优化器代码，增加可扩展性
 - 增加学习率热启动(`CosineAnnealingWarmRestarts`)
 
+## v0.2.3.3
+- 优化resume
+- 增加albumentations数据增广操作
+- 修改之前的resize和crop之间的逻辑关系
+
 # TODO list 
 
 
@@ -87,3 +92,9 @@
 - [X] 内建更多SOTA模型
 - [ ] 设置更多默认的数据集
 - [ ] 完善使用文档
+- [x] 每个epoch输出学习率大小
+- [x] resume时输出checkpoint的结果
+- [x] 如果resume，则自动匹配checkpoints等路径
+- [ ] 优化输出日志信息
+- [x] 使用albumentations做数据增强
+- [x] transforms resize和randomcrop逻辑关系

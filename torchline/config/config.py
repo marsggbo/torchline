@@ -43,11 +43,19 @@ class CfgNode(_CfgNode):
         self.merge_from_list(hparams.opts)
         self.update({'hparams': hparams})
 
-        version = self._version()
-        save_dir=self.trainer.default_save_path
-        logger_name=self.trainer.logger.test_tube.name
-        self.log.path = os.path.join(save_dir, logger_name, f"version_{version}")
-        self.log.name = os.path.join(self.log.path, 'log.txt')
+        # './outputs/torchline_logs/version_0/checkpoints/_ckpt_epoch_1.ckpt'
+        ckpt_file = self.trainer.resume_from_checkpoint
+        if ckpt_file:
+            assert os.path.exists(ckpt_file), f"{ckpt_file} not exits"
+            ckpt_path = os.path.dirname(ckpt_file).split('/')[:-1]
+            self.log.path = ''.join([p+'/' for p in ckpt_path])
+            self.log.name = os.path.join(self.log.path, 'log.txt')
+        else:
+            version = self._version()
+            save_dir = self.trainer.default_save_path
+            logger_name = self.trainer.logger.test_tube.name
+            self.log.path = os.path.join(save_dir, logger_name, f"version_{version}")
+            self.log.name = os.path.join(self.log.path, 'log.txt')
         self.freeze()
 
         os.makedirs(self.log.path, exist_ok=True)
