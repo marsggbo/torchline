@@ -1,7 +1,9 @@
 # torchline v0.2.3.2
 
 > Easy to use Pytorch
+> 
 > Only one configure file is enough!
+> 
 > You can change anything you want just in only one configure file.
 
 # Dependences
@@ -27,7 +29,7 @@ pip install -U torchline
 ## train model with GPU0 and GPU 1
 ```python
 cd projects/cifar10_demo
-python main.py --config_file cifar10.yaml trainer.device_ids [0,1]" 
+python main.py --config_file cifar10.yaml trainer.device_ids [0,1]
 ```
 
 ## debug，add command line `trainer.fast_dev_run True`
