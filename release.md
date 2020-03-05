@@ -69,6 +69,10 @@
 ## v0.2.3.1
 - 优化`AverageMeterGroup`输出格式，方便阅读
 
+## v0.2.3.2
+- 优化优化器代码，增加可扩展性
+- 增加学习率热启动(`CosineAnnealingWarmRestarts`)
+
 # TODO list 
 
 

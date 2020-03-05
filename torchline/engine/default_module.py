@@ -262,59 +262,73 @@ class DefaultModule(LightningModule):
     # ---------------------
     # TRAINING SETUP
     # ---------------------
-    def generate_optimizer(self):
+    @classmethod
+    def generate_optimizer(cls, model, optim_name, lr, momentum=0.9, weight_decay=1e-5):
         '''
         return torch.optim.Optimizer
         '''
-        optim_name = self.cfg.optim.name
-        momentum = self.cfg.optim.momentum
-        weight_decay = self.cfg.optim.weight_decay
-        lr = self.cfg.optim.base_lr
         if optim_name.lower() == 'sgd':
-            return torch.optim.SGD(self.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
+            return torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
         elif optim_name.lower() == 'adadelta':
-            return torch.optim.Adagrad(self.parameters(), lr=lr, weight_decay=weight_decay)
+            return torch.optim.Adagrad(model.parameters(), lr=lr, weight_decay=weight_decay)
         elif optim_name.lower() == 'adam': 
-            return torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
+            return torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
         elif optim_name.lower() == 'rmsprop':
-            return torch.optim.RMSprop(self.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
+            return torch.optim.RMSprop(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
         else:
             print(f"{optim_name} not implemented")
             raise NotImplementedError
 
-    def generate_scheduler(self, optimizer):
+    
+    @classmethod
+    def generate_scheduler(cls, optimizer, scheduler_name, **params):
         '''
         return torch.optim.lr_scheduler
         '''
-        scheduler_name = self.cfg.optim.scheduler.name
         if scheduler_name.lower() == 'CosineAnnealingLR'.lower():
-            return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.cfg.optim.scheduler.t_max)
+            return optim.lr_scheduler.CosineAnnealingLR(optimizer, **params)
+        elif scheduler_name.lower() == 'CosineAnnealingWarmRestarts'.lower():
+            return optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, **params)
         elif scheduler_name.lower() == 'StepLR'.lower():
-            step_size = self.cfg.optim.scheduler.step_size
-            gamma = self.cfg.optim.scheduler.gamma
-            return optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
+            return optim.lr_scheduler.StepLR(optimizer, **params)
         elif scheduler_name.lower() == 'MultiStepLR'.lower():
-            milestones = self.cfg.optim.scheduler.milestones
-            gamma = self.cfg.optim.scheduler.gamma
-            return optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
+            return optim.lr_scheduler.MultiStepLR(optimizer, **params)
         elif scheduler_name.lower() == 'ReduceLROnPlateau'.lower():
-            mode = self.cfg.optim.scheduler.mode
-            patience = self.cfg.optim.scheduler.patience
-            verbose = self.cfg.optim.scheduler.verbose
-            factor = self.cfg.optim.scheduler.gamma
-            return optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode=mode, patience=patience, 
-                                                        verbose=verbose, factor=factor)
+            return optim.lr_scheduler.ReduceLROnPlateau(optimizer, **params)
         else:
             print(f"{scheduler_name} not implemented")
             raise NotImplementedError
+
+    @classmethod
+    def parse_cfg_for_scheduler(cls, cfg, scheduler_name):
+        if scheduler_name.lower() == 'CosineAnnealingLR'.lower():
+            params = {'T_max': cfg.optim.scheduler.t_max}
+        elif scheduler_name.lower() == 'CosineAnnealingWarmRestarts'.lower():
+            params = {'T_0': cfg.optim.scheduler.t_0, 'T_mult': cfg.optim.scheduler.t_mul}
+        elif scheduler_name.lower() == 'StepLR'.lower():
+            params = {'step_size': cfg.optim.scheduler.step_size, 'gamma': cfg.optim.scheduler.gamma}
+        elif scheduler_name.lower() == 'MultiStepLR'.lower():
+            params = {'milestones': cfg.optim.scheduler.milestones, 'gamma': cfg.optim.scheduler.gamma}
+        elif scheduler_name.lower() == 'ReduceLROnPlateau'.lower():
+            params = {'mode': cfg.optim.scheduler.mode, 'patience': cfg.optim.scheduler.patience, 
+                      'verbose': cfg.optim.scheduler.verbose, 'factor': cfg.optim.scheduler.gamma}
+        else:
+            print(f"{scheduler_name} not implemented")
+            raise NotImplementedError
+        return params
 
     def configure_optimizers(self):
         """
         return whatever optimizers we want here
         :return: list of optimizers
         """
-        optimizer = self.generate_optimizer()
-        scheduler = self.generate_scheduler(optimizer)
+        optim_name = self.cfg.optim.name
+        momentum = self.cfg.optim.momentum
+        weight_decay = self.cfg.optim.weight_decay
+        lr = self.cfg.optim.base_lr
+        optimizer = self.generate_optimizer(self.model, optim_name, lr, momentum, weight_decay)
+        scheduler_params = self.parse_cfg_for_scheduler(self.cfg, self.cfg.optim.scheduler.name)
+        scheduler = self.generate_scheduler(optimizer, self.cfg.optim.scheduler.name, **scheduler_params)
         return [optimizer], [scheduler]
 
     def __dataloader(self, is_train):

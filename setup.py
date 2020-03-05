@@ -5,7 +5,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
     name="torchline", # Replace with your own username
-    version="0.2.3.1",
+    version="0.2.3.2",
     author="marsggbo",
     author_email="csxinhe@comp.hkbu.edu.hk",
     description="A framework for easy to use Pytorch",

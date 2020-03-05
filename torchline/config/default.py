@@ -141,6 +141,10 @@ _C.optim.scheduler.gamma = 0.1 # decay factor
 # for CosineAnnealingLR
 _C.optim.scheduler.t_max = 10 
 
+# for CosineAnnealingLR
+_C.optim.scheduler.t_0 = 5
+_C.optim.scheduler.t_mul = 20
+
 # for ReduceLROnPlateau
 _C.optim.scheduler.mode = 'min' # min for loss, max for acc
 _C.optim.scheduler.patience = 10
