@@ -98,3 +98,6 @@
 - [ ] 优化输出日志信息
 - [x] 使用albumentations做数据增强
 - [x] transforms resize和randomcrop逻辑关系
+- [ ] 规范参数名称，尽量使用全程，如使用optimizer而不是optim
+- [ ] 增加config参数鲁棒性和兼容性
+- [x] 抽离出optimizer和scheduler

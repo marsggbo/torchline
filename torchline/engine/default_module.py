@@ -22,6 +22,7 @@ from torchline.losses import build_loss_fn
 from torchline.models import build_model
 from torchline.utils import topk_acc, AverageMeterGroup
 from .build import MODULE_REGISTRY
+from .utils import generate_optimizer, generate_scheduler
 
 __all__ = [
     'DefaultModule'
@@ -295,42 +296,6 @@ class DefaultModule(LightningModule):
     # TRAINING SETUP
     # ---------------------
     @classmethod
-    def generate_optimizer(cls, model, optim_name, lr, momentum=0.9, weight_decay=1e-5):
-        '''
-        return torch.optim.Optimizer
-        '''
-        if optim_name.lower() == 'sgd':
-            return torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
-        elif optim_name.lower() == 'adadelta':
-            return torch.optim.Adagrad(model.parameters(), lr=lr, weight_decay=weight_decay)
-        elif optim_name.lower() == 'adam': 
-            return torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-        elif optim_name.lower() == 'rmsprop':
-            return torch.optim.RMSprop(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
-        else:
-            print(f"{optim_name} not implemented")
-            raise NotImplementedError
-
-    @classmethod
-    def generate_scheduler(cls, optimizer, scheduler_name, **params):
-        '''
-        return torch.optim.lr_scheduler
-        '''
-        if scheduler_name.lower() == 'CosineAnnealingLR'.lower():
-            return optim.lr_scheduler.CosineAnnealingLR(optimizer, **params)
-        elif scheduler_name.lower() == 'CosineAnnealingWarmRestarts'.lower():
-            return optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, **params)
-        elif scheduler_name.lower() == 'StepLR'.lower():
-            return optim.lr_scheduler.StepLR(optimizer, **params)
-        elif scheduler_name.lower() == 'MultiStepLR'.lower():
-            return optim.lr_scheduler.MultiStepLR(optimizer, **params)
-        elif scheduler_name.lower() == 'ReduceLROnPlateau'.lower():
-            return optim.lr_scheduler.ReduceLROnPlateau(optimizer, **params)
-        else:
-            print(f"{scheduler_name} not implemented")
-            raise NotImplementedError
-
-    @classmethod
     def parse_cfg_for_scheduler(cls, cfg, scheduler_name):
         if scheduler_name.lower() == 'CosineAnnealingLR'.lower():
             params = {'T_max': cfg.optim.scheduler.t_max}
@@ -357,9 +322,9 @@ class DefaultModule(LightningModule):
         momentum = self.cfg.optim.momentum
         weight_decay = self.cfg.optim.weight_decay
         lr = self.cfg.optim.base_lr
-        optimizer = self.generate_optimizer(self.model, optim_name, lr, momentum, weight_decay)
+        optimizer = generate_optimizer(self.model, optim_name, lr, momentum, weight_decay)
         scheduler_params = self.parse_cfg_for_scheduler(self.cfg, self.cfg.optim.scheduler.name)
-        scheduler = self.generate_scheduler(optimizer, self.cfg.optim.scheduler.name, **scheduler_params)
+        scheduler = generate_scheduler(optimizer, self.cfg.optim.scheduler.name, **scheduler_params)
         return [optimizer], [scheduler]
 
     def __dataloader(self, is_train):
