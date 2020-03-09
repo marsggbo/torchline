@@ -1,2 +1,2 @@
 from . import config, data, models, engine, losses, models, utils, trainer
-version = "0.2.3.3"
+version = "0.2.3.4"

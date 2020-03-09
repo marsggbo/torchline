@@ -78,6 +78,10 @@
 - 增加albumentations数据增广操作
 - 修改之前的resize和crop之间的逻辑关系
 
+## v0.2.3.4
+- 抽象化optimizer和scheduler定义，方便从外部直接调用
+- 添加计算模型大小的函数
+
 # TODO list 
 
 
@@ -95,9 +99,10 @@
 - [x] 每个epoch输出学习率大小
 - [x] resume时输出checkpoint的结果
 - [x] 如果resume，则自动匹配checkpoints等路径
-- [ ] 优化输出日志信息
+- [x] 优化输出日志信息
 - [x] 使用albumentations做数据增强
 - [x] transforms resize和randomcrop逻辑关系
-- [ ] 规范参数名称，尽量使用全程，如使用optimizer而不是optim
+- [ ] 规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新
 - [ ] 增加config参数鲁棒性和兼容性
+- [ ] 评估使用hydra代替yacs的必要性
 - [x] 抽离出optimizer和scheduler

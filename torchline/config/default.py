@@ -176,6 +176,7 @@ _C.optim = CN()
 _C.optim.name = 'adam'
 _C.optim.momentum = 0.9
 _C.optim.base_lr = 0.001
+# _C.optim.lr = _C.optim.base_lr # will changed in v0.3.0.0
 _C.optim.weight_decay = 0.0005
 
 # scheduler
@@ -201,6 +202,7 @@ _C.optim.scheduler.step_size = 10
 # for MultiStepLR
 _C.optim.scheduler.milestones = [10, 25, 35, 50]
 
+# _C.optimizer = _C.optim # enhance compatibility. will changed in v0.3.0.0
 # ---------------------------------------------------------------------------- #
 # loss
 # ---------------------------------------------------------------------------- #

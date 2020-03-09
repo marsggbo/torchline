@@ -56,6 +56,9 @@ def get_imgs_to_predict(path, cfg):
         images['img_data'] = torch.stack(images['img_data'])
     return images
 
+def model_size(model):
+    return sum([p.numel() for p in model.parameters()])*4/1024**2
+
 def topk_acc(output, target, topk=(1, 3)):
     """Computes the precision@k for the specified values of k"""
     maxk = max(topk)
