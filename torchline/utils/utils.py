@@ -8,7 +8,8 @@ from torchvision import transforms
 __all__ = [
     'image_loader',
     'get_imgs_to_predict',
-    'topk_acc'
+    'topk_acc',
+    'model_size'
 ]
 
 def image_loader(filename, cfg):
