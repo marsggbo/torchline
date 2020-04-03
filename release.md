@@ -39,8 +39,6 @@
 ### 2019.12.19更新信息
 - 修改各种路径参数设置逻辑（详见[skin/ReadMe.md](projects/skin/ReadMe.md)）
 
-### todo list
-
 
 ## v0.2
 
@@ -87,7 +85,11 @@
 - 统一模型结构(features, logits, forward, last_linear)
 
 ## v0.2.4.1
-- 修改单机多卡训练bug
+- 修改单机多卡训练bug 
+  - 此模式夏batch size必须是gpu的整数倍，否则汇报如下错误：
+  ```Python
+  ValueError: only one element tensors can be converted to Python scalars
+  ```
 - 规范化两种日志模式： tqdm和logging
 
 # TODO list 
@@ -102,22 +104,25 @@
 - [x] 进一步完善包导入
 - [x] 设置训练epoch数量
 - [X] 内建更多SOTA模型
-- [ ] 设置更多默认的数据集
-- [ ] 完善使用文档
 - [x] 每个epoch输出学习率大小
 - [x] resume时输出checkpoint的结果
 - [x] 如果resume，则自动匹配checkpoints等路径
 - [x] 优化输出日志信息
 - [x] 使用albumentations做数据增强
 - [x] transforms resize和randomcrop逻辑关系
-- [ ] 规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新
-- [ ] 增加config参数鲁棒性和兼容性
-- [ ] 评估使用hydra代替yacs的必要性
 - [x] 从engine中抽离出optimizer和scheduler
 - [x] ~~resnet结构可能有问题，resnet50应该有98MB，但是实现只有89.7~~。（没有错，只是因为计算时将classes设置成了10，所以导致了误差）
-- [ ] 考虑是否将finetune设置内嵌到模型中
-- [ ] 适配pytorchlightning 0.7.0版本 # 在大版本v0.3.0.0中更新
-- [ ] 增加`Module`中`print_log`通用性
-- [ ] albumentations和torchvision读取图片使用的分别是cv2和PIL，数据格式分别是numpy和PIL.Image，后面需要考虑如何统一格式。
 - [x] 单机多卡多GPU测试
+- [x] ~~考虑是否将finetune设置内嵌到模型中~~ (取消设置，避免模型代码臃肿)
+- [ ] 设置更多默认的数据集
+- [ ] 完善使用文档
+- [ ] 评估使用hydra代替yacs的必要性
+- [ ] 增加config参数鲁棒性和兼容性
 - [ ] 多机多卡测试
+
+
+## v3.0 todo list
+- [ ] 适配pytorchlightning 0.7.0版本 # 在大版本v0.3.0.0中更新
+- [ ] 规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新
+- [ ] albumentations和torchvision读取图片使用的分别是cv2和PIL，数据格式分别是numpy和PIL.Image，后面需要考虑如何统一格式。
+- [ ] 增加`Module`中`print_log`通用性
