@@ -86,6 +86,10 @@
 - 增加大量SOTA模型结构，如Mnasnet, mobilenet等
 - 统一模型结构(features, logits, forward, last_linear)
 
+## v0.2.4.1
+- 修改单机多卡训练bug
+- 规范化两种日志模式： tqdm和logging
+
 # TODO list 
 
 

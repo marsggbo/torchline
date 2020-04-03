@@ -112,27 +112,29 @@ class DefaultModule(LightningModule):
                 raise NotImplementedError
 
     def on_epoch_start(self):
-        # print current lr
-        if isinstance(self.trainer.optimizers, list):
-            if len(self.trainer.optimizers) == 1:
-                optimizer = self.trainer.optimizers[0]
-                lr = optimizer.param_groups[0]["lr"]
-                print(f"lr={lr:.4e}")
-            else:
-                for index, optimizer in enumerate(self.trainer.optimizers):
+        if not self.cfg.trainer.show_progress_bar:
+            # print current lr
+            if isinstance(self.trainer.optimizers, list):
+                if len(self.trainer.optimizers) == 1:
+                    optimizer = self.trainer.optimizers[0]
                     lr = optimizer.param_groups[0]["lr"]
-                    name = str(optimizer).split('(')[0].strip()
-                    self.trainer.logger_print.info(f"lr of {name}_{index} is {lr:.4e} ")
-        else:
-            lr = self.trainer.optimizers.param_groups[0]["lr"]
-            print(f"lr={lr:.4e}")
+                    print(f"lr={lr:.4e}")
+                else:
+                    for index, optimizer in enumerate(self.trainer.optimizers):
+                        lr = optimizer.param_groups[0]["lr"]
+                        name = str(optimizer).split('(')[0].strip()
+                        self.trainer.logger_print.info(f"lr of {name}_{index} is {lr:.4e} ")
+            else:
+                lr = self.trainer.optimizers.param_groups[0]["lr"]
+                print(f"lr={lr:.4e}")
 
     def on_epoch_end(self):
-        self.trainer.logger_print.info(f'Final Train: {self.train_meters}')
-        self.trainer.logger_print.info(f'FInal Valid: {self.valid_meters}')
-        self.trainer.logger_print.info("===========================\n")
-        self.train_meters = AverageMeterGroup()
-        self.valid_meters = AverageMeterGroup()
+        if not self.cfg.trainer.show_progress_bar:
+            self.trainer.logger_print.info(f'Final Train: {self.train_meters}')
+            self.trainer.logger_print.info(f'FInal Valid: {self.valid_meters}')
+            self.trainer.logger_print.info("===========================\n")
+            self.train_meters = AverageMeterGroup()
+            self.valid_meters = AverageMeterGroup()
 
     # ---------------------
     # TRAINING
