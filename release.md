@@ -114,3 +114,6 @@
 - [ ] 考虑是否将finetune设置内嵌到模型中
 - [ ] 适配pytorchlightning 0.7.0版本 # 在大版本v0.3.0.0中更新
 - [ ] 增加`Module`中`print_log`通用性
+- [ ] albumentations和torchvision读取图片使用的分别是cv2和PIL，数据格式分别是numpy和PIL.Image，后面需要考虑如何统一格式。
+- [x] 单机多卡多GPU测试
+- [ ] 多机多卡测试

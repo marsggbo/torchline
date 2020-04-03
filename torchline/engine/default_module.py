@@ -51,6 +51,8 @@ class DefaultModule(LightningModule):
 
         # build model
         self.model = self.build_model(cfg)
+        self.train_meters = AverageMeterGroup()
+        self.valid_meters = AverageMeterGroup()
 
     # ---------------------
     # model SETUP
@@ -129,6 +131,8 @@ class DefaultModule(LightningModule):
         self.trainer.logger_print.info(f'Final Train: {self.train_meters}')
         self.trainer.logger_print.info(f'FInal Valid: {self.valid_meters}')
         self.trainer.logger_print.info("===========================\n")
+        self.train_meters = AverageMeterGroup()
+        self.valid_meters = AverageMeterGroup()
 
     # ---------------------
     # TRAINING
@@ -175,8 +179,6 @@ class DefaultModule(LightningModule):
         :param batch:
         :return:
         """
-        if batch_idx == 0:
-            self.train_meters = AverageMeterGroup() # reset meters at a new epoch
 
         # forward pass
         inputs, gt_labels = batch
@@ -189,13 +191,17 @@ class DefaultModule(LightningModule):
         acc_results = topk_acc(predictions, gt_labels, self.cfg.topk)
         tqdm_dict = {}
 
+        if self.on_gpu:
+            acc_results = [torch.tensor(x).to(loss_val.device.index) for x in acc_results]
+
         # in DP mode (default) make sure if result is scalar, there's another dim in the beginning
         if self.trainer.use_dp or self.trainer.use_ddp2:
             loss_val = loss_val.unsqueeze(0)
+            acc_results = [x.unsqueeze(0) for x in acc_results]
 
-        tqdm_dict.update({'train_loss': loss_val.item()})
+        tqdm_dict['train_loss'] = loss_val
         for i, k in enumerate(self.cfg.topk):
-            tqdm_dict[f'train_acc_{k}'] = acc_results[i].item()
+            tqdm_dict[f'train_acc_{k}'] = acc_results[i]
 
         output = OrderedDict({
             'loss': loss_val,
@@ -203,7 +209,7 @@ class DefaultModule(LightningModule):
             'log': tqdm_dict
         })
 
-        self.train_meters.update(tqdm_dict)
+        self.train_meters.update({key: val.item() for key, val in tqdm_dict.items()})
         self.print_log(batch_idx, True, inputs, self.train_meters)
 
         # can also return just a scalar instead of a dict (return loss_val)
@@ -215,8 +221,6 @@ class DefaultModule(LightningModule):
         :param batch:
         :return:
         """
-        if batch_idx == 0:
-            self.valid_meters = AverageMeterGroup() # reset meters at a new epoch
         inputs, gt_labels = batch
         predictions = self.forward(inputs)
 
@@ -240,8 +244,8 @@ class DefaultModule(LightningModule):
             'valid_acc_1': val_acc_1,
             f'valid_acc_{self.cfg.topk[-1]}': val_acc_k,
         })
-        tqdm_dict = {k: v.item() for k, v in dict(output).items()}
-        self.valid_meters.update(tqdm_dict)
+        tqdm_dict = {k: v for k, v in dict(output).items()}
+        self.valid_meters.update({key: val.item() for key, val in tqdm_dict.items()})
         self.print_log(batch_idx, False, inputs, self.valid_meters)
 
         # can also return just a scalar instead of a dict (return loss_val)
@@ -257,33 +261,8 @@ class DefaultModule(LightningModule):
         # we return just the average in this case (if we want)
         # return torch.stack(outputs).mean()
 
-        val_loss_mean = 0
-        val_acc_1_mean = 0
-        val_acc_k_mean = 0
-        for output in outputs:
-            val_loss = output['valid_loss']
-
-            # reduce manually when using dp
-            if self.trainer.use_dp or self.trainer.use_ddp2:
-                val_loss = torch.mean(val_loss)
-            val_loss_mean += val_loss
-
-            # reduce manually when using dp
-            val_acc_1 = output['valid_acc_1']
-            val_acc_k = output[f'valid_acc_{self.cfg.topk[-1]}']
-            if self.trainer.use_dp or self.trainer.use_ddp2:
-                val_acc_1 = torch.mean(val_acc_1)
-                val_acc_k = torch.mean(val_acc_k)
-
-            val_acc_1_mean += val_acc_1
-            val_acc_k_mean += val_acc_k
-
-        val_loss_mean /= len(outputs)
-        val_acc_1_mean /= len(outputs)
-        val_acc_k_mean /= len(outputs)
-        tqdm_dict = {'valid_loss': val_loss_mean, 'valid_acc_1': val_acc_1_mean, 
-                                                f'valid_acc_{self.cfg.topk[-1]}': val_acc_k_mean}
-        result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'valid_loss': val_loss_mean}
+        tqdm_dict = {key: val.avg for key, val in self.valid_meters.meters.items()}
+        result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'valid_loss': self.valid_meters.meters['valid_loss'].avg}
         return result
 
     def test_step(self, batch, batch_idx):
