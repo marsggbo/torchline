@@ -1,3 +1,4 @@
+import random
 from .config import CfgNode as CN
 
 _C = CN()
@@ -165,8 +166,6 @@ _C.model.name = 'Resnet50'
 _C.model.classes = 10
 _C.model.pretrained = True
 _C.model.finetune = False
-_C.model.features = ['f4', ]
-_C.model.features_fusion = 'sum'
 
 
 # ---------------------------------------------------------------------------- #
@@ -307,7 +306,7 @@ _C.log.name = 'log.txt'
 # Misc 
 # ---------------------------------------------------------------------------- #
 
-_C.SEED = 666
+_C.SEED = random.randint(0, 10000)
 _C.DEFAULT_CUDNN_BENCHMARK = True
 
 _C.topk = [1, 3] # save the top k results., e.g. acc@1 and acc@3

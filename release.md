@@ -82,6 +82,10 @@
 - 抽象化optimizer和scheduler定义，方便从外部直接调用
 - 添加计算模型大小的函数
 
+## v0.2.4.0
+- 增加大量SOTA模型结构，如Mnasnet, mobilenet等
+- 统一模型结构(features, logits, forward, last_linear)
+
 # TODO list 
 
 
@@ -105,4 +109,7 @@
 - [ ] 规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新
 - [ ] 增加config参数鲁棒性和兼容性
 - [ ] 评估使用hydra代替yacs的必要性
-- [x] 抽离出optimizer和scheduler
+- [x] 从engine中抽离出optimizer和scheduler
+- [x] ~~resnet结构可能有问题，resnet50应该有98MB，但是实现只有89.7~~。（没有错，只是因为计算时将classes设置成了10，所以导致了误差）
+- [ ] 考虑是否将finetune设置内嵌到模型中
+- [ ] 适配pytorchlightning 0.7.0版本 # 在大版本v0.3.0.0中更新

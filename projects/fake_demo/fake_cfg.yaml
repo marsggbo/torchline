@@ -44,8 +44,6 @@ loss:
     name: 'CrossEntropy'
 model:
     classes: 10
-    features: ['f4']
-    features_fusion: 'sum'
     finetune: False
     name: 'FakeNet'
     pretrained: True

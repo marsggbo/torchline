@@ -1,4 +1,4 @@
-# torchline v0.2.3.4
+# torchline v0.2.4.0
 
 > Easy to use Pytorch
 > 
@@ -12,7 +12,7 @@
 - Pytorch>=1.3.1
 - torchvision>=0.4.0,<0.5.0
 - yacs==0.1.6
-- pytorch-lightning>=0.6.0
+- pytorch-lightning>=0.6.0,<0.7.0
 
 
 # Install

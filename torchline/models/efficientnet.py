@@ -58,31 +58,39 @@ class Block(nn.Module):
 
 @META_ARCH_REGISTRY.register()
 class EfficientNet(nn.Module):
-    def __init__(self, cfg, num_classes=10):
+    def __init__(self, layers, num_classes=10):
         super(EfficientNet, self).__init__()
-        self.cfg = cfg
+        self.layers = layers
         self.conv1 = nn.Conv2d(3, 32, kernel_size=3,
                                stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(32)
         self.layers = self._make_layers(in_planes=32)
-        self.linear = nn.Linear(cfg[-1][1], num_classes)
+        self.last_linear = nn.Linear(layers[-1][1], num_classes)
 
     def _make_layers(self, in_planes):
         layers = []
-        for expansion, out_planes, num_blocks, stride in self.cfg:
+        for expansion, out_planes, num_blocks, stride in self.layers:
             strides = [stride] + [1]*(num_blocks-1)
             for stride in strides:
                 layers.append(Block(in_planes, out_planes, expansion, stride))
                 in_planes = out_planes
         return nn.Sequential(*layers)
 
-    def forward(self, x): # 2*3*32*32
-        out = F.relu(self.bn1(self.conv1(x))) # 2*32*32*32
-        out = self.layers(out) # 2*320*1*1
-        out = nn.AdaptiveAvgPool2d((1,1))(out) # 2*320*1*1
-        out = out.view(out.size(0), -1)
-        out = self.linear(out)
-        return out
+    def features(self, input): # 2*3*32*32
+        x = F.relu(self.bn1(self.conv1(input))) # 2*32*32*32
+        x = self.layers(x) # 2*320*1*1
+        return x
+
+    def logits(self, features):
+        x = nn.AdaptiveAvgPool2d((1,1))(features) # 2*320*1*1
+        x = x.view(x.size(0), -1)
+        x = self.last_linear(x)
+        return x
+
+    def forward(self, input): # 2*3*32*32
+        x = self.features(input) # 2*320*1*1
+        x = self.logits(x) # 2*num_classes
+        return x
 
 
 @META_ARCH_REGISTRY.register()
@@ -90,11 +98,11 @@ class EfficientNetB0(EfficientNet):
     def __init__(self, cfg):
         num_classes = cfg.model.classes
         # (expansion, out_planes, num_blocks, stride)
-        cfg = [(1,  16, 1, 2),
+        layers = [(1,  16, 1, 2),
             (6,  24, 2, 1),
             (6,  40, 2, 2),
             (6,  80, 3, 2),
             (6, 112, 3, 1),
             (6, 192, 4, 2),
             (6, 320, 1, 2)]
-        super(EfficientNetB0, self).__init__(cfg, num_classes)
+        super(EfficientNetB0, self).__init__(layers, num_classes)
