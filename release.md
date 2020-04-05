@@ -120,6 +120,7 @@
 - [ ] 评估使用hydra代替yacs的必要性
 - [ ] 增加config参数鲁棒性和兼容性
 - [ ] 多机多卡测试
+- [ ] template project. 可快速基于torchline创建一个新项目
 
 
 ## v3.0 todo list
