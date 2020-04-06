@@ -1,11 +1,11 @@
 import torch
 import torchline as tl
-x = torch.rand(1,3,64,64)
 cfg = tl.config.get_cfg()
 cfg.model.pretrained = False
 
 def cpu_test():
     print('=====cpu=====')
+    x = torch.rand(1,3,64,64)
     for m in tl.models.model_list:
         cfg.model.name = m
         net = tl.models.build_model(cfg)
@@ -19,6 +19,7 @@ def cpu_test():
 
 def single_gpu_test():
     print('=====single_gpu=====')
+    x = torch.rand(4,3,64,64)
     for m in tl.models.model_list:
         cfg.model.name = m
         net = tl.models.build_model(cfg).cuda()
@@ -33,6 +34,7 @@ def single_gpu_test():
 
 def multi_gpus_test():
     print('=====multi_gpu=====')
+    x = torch.rand(4,3,64,64)
     for m in tl.models.model_list:
         cfg.model.name = m
         net = tl.models.build_model(cfg).cuda()
