@@ -76,21 +76,21 @@ class EfficientNet(nn.Module):
                 in_planes = out_planes
         return nn.Sequential(*layers)
 
-    def features(self, input): # 2*3*32*32
-        x = F.relu(self.bn1(self.conv1(input))) # 2*32*32*32
-        x = self.layers(x) # 2*320*1*1
-        return x
+    def features(self, x): # 2*3*32*32
+        out = F.relu(self.bn1(self.conv1(x))) # 2*32*32*32
+        out = self.layers(out) # 2*320*1*1
+        return out
 
-    def logits(self, features):
-        x = nn.AdaptiveAvgPool2d((1,1))(features) # 2*320*1*1
-        x = x.view(x.size(0), -1)
-        x = self.last_linear(x)
-        return x
+    def logits(self, x):
+        out = nn.AdaptiveAvgPool2d((1,1))(x) # 2*320*1*1
+        out = out.view(out.size(0), -1)
+        out = self.last_linear(out)
+        return out
 
-    def forward(self, input): # 2*3*32*32
-        x = self.features(input) # 2*320*1*1
-        x = self.logits(x) # 2*num_classes
-        return x
+    def forward(self, x): # 2*3*32*32
+        out = self.features(x) # 2*320*1*1
+        out = self.logits(out) # 2*num_classes
+        return out
 
 
 @META_ARCH_REGISTRY.register()

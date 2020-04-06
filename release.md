@@ -92,6 +92,10 @@
   ```
 - 规范化两种日志模式： tqdm和logging
 
+## v0.2.4.2
+- 修复单机多卡训练时的bug
+- 修改和统一model forward函数： features+logits
+
 # TODO list 
 
 

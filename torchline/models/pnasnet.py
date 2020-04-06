@@ -89,7 +89,7 @@ class PNASNet(nn.Module):
         self.layer3 = self._make_layer(num_planes*2, num_cells=6)
         self.layer4 = self._downsample(num_planes*4)
         self.layer5 = self._make_layer(num_planes*4, num_cells=6)
-
+        self.g_avg_pool = nn.AdaptiveAvgPool2d(1)
         self.last_linear = nn.Linear(num_planes*4, num_classes)
 
     def _make_layer(self, planes, num_cells):
@@ -104,24 +104,24 @@ class PNASNet(nn.Module):
         self.in_planes = planes
         return layer
 
-    def features(self, input):
-        x = F.relu(self.bn1(self.conv1(input)))
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        x = self.layer5(x)
-        return x
+    def features(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.layer5(out)
+        return out
 
-    def logits(self, features):
-        x = F.adaptive_avg_pool2d(features, 1)
-        x = self.last_linear(x.view(x.size(0), -1))
-        return x
+    def logits(self, x):
+        out = self.g_avg_pool(x)
+        out = self.last_linear(out.view(out.size(0), -1))
+        return out
 
-    def forward(self, input):
-        x = self.features(input)
-        x = self.logits(x)
-        return x
+    def forward(self, x):
+        out = self.features(x)
+        out = self.logits(out)
+        return out
 
 @META_ARCH_REGISTRY.register()
 class PNASNetA(PNASNet):

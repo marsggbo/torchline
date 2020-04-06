@@ -13,27 +13,29 @@ __all__ = [
 ]
 
 
-def modify_mobilenet(model):
-    # Modify attributs
-    model.last_linear = model.classifier
-    model.classifier = None
 
-    def logits(self, features):
-        x = features.mean([2, 3])
-        x = self.last_linear(x)
-        return x
+class MobileNetV2(nn.Module):
+    # Modify attributs	    
+    def __init__(self, model):
+        super(MobileNetV2, self).__init__()
+        for key, val in model.__dict__.items():
+            self.__dict__[key] = val
 
-    def forward(self, input):
-        x = self.features(input)
-        x = self.logits(x)
-        return x
+        self.g_avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.last_linear = self.classifier
 
-    # Modify methods
-    model.logits = types.MethodType(logits, model)
-    model.forward = types.MethodType(forward, model)
-    return model
+    def logits(self, x):
+        out = self.g_avg_pool(x)
+        out = out.view(out.size(0), -1)
+        out = self.last_linear(out)
+        return out
 
-def generate_mobilenet(cfg, name):
+    def forward(self, x):
+        out = self.features(x)
+        out = self.logits(out)
+        return out
+
+def generate_model(cfg, name):
     pretrained=cfg.model.pretrained
     classes = cfg.model.classes
     if 'dropout' in cfg.model:
@@ -46,8 +48,8 @@ def generate_mobilenet(cfg, name):
         model.classifier = nn.Sequential(
             nn.Dropout(p=dropout, inplace=True),
             nn.Linear(in_features, classes, bias=False))
-    return modify_mobilenet(model)
+    return MobileNetV2(model)
 
 @META_ARCH_REGISTRY.register()
 def MobileNet_V2(cfg):
-    return generate_mobilenet(cfg, 'mobilenet_v2')
+    return generate_model(cfg, 'mobilenet_v2')

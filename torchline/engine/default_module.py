@@ -57,24 +57,21 @@ class DefaultModule(LightningModule):
     # ---------------------
     # model SETUP
     # ---------------------
-    @classmethod
-    def build_model(cls, cfg):
+    def build_model(self, cfg):
         """
         Layout model
         :return:
         """
         return build_model(cfg)
 
-    @classmethod
-    def build_loss_fn(cls, cfg):
+    def build_loss_fn(self, cfg):
         """
         Layout loss_fn
         :return:
         """
         return build_loss_fn(cfg)
 
-    @classmethod
-    def build_data(cls, cfg, is_train):
+    def build_data(self, cfg, is_train):
         """
         Layout training dataset
         :return:
@@ -84,8 +81,7 @@ class DefaultModule(LightningModule):
         cfg.freeze()
         return build_data(cfg)
 
-    @classmethod
-    def build_sampler(cls, cfg, is_train):
+    def build_sampler(self, cfg, is_train):
         """
         Layout training dataset
         :return:
@@ -145,10 +141,13 @@ class DefaultModule(LightningModule):
         No special modification required for lightning, define as you normally would
         :param x:
         :return:
-        """
-
-        logits = self.model(x)
+        
+        return middle features
+        features = self.model.features(x)
+        logits = self.model.logits(features)
         return logits
+        """
+        return self.model(x)
 
     def loss(self, predictions, gt_labels):
         loss_fn = self.build_loss_fn(self.cfg)
