@@ -96,6 +96,10 @@
 - 修复单机多卡训练时的bug
 - 修改和统一model forward函数： features+logits
 
+## v0.2.4.3
+- 更新module forward函数
+- 增加loss函数，最小化entropy
+
 # TODO list 
 
 

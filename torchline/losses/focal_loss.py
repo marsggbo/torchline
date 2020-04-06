@@ -5,12 +5,20 @@ import numpy as np
 from .build import LOSS_FN_REGISTRY
 
 __all__ = [
-    'FocalLoss'
+    'FocalLoss',
+    '_FocalLoss'
 ]
 
 @LOSS_FN_REGISTRY.register()
-class FocalLoss(torch.nn.Module):    
-    def __init__(self, cfg):
+def FocalLoss(cfg):
+    alpha = cfg.loss.focal_loss.alpha
+    gamma = cfg.loss.focal_loss.gamma
+    size_average = cfg.loss.focal_loss.size_average
+    num_classes = cfg.model.classes
+    return _FocalLoss(alpha, gamma, num_classes, size_average)
+
+class _FocalLoss(torch.nn.Module):    
+    def __init__(self, alpha, gamma, num_classes, size_average=True):
         """focal_loss function: -α(1-yi)**γ *ce_loss(xi,yi)   
         Args:
             alpha:  class weight (default 0.25).
@@ -24,12 +32,8 @@ class FocalLoss(torch.nn.Module):
             size_average:  (default 'mean'/'sum') specify the way to compute the loss value
         """
 
-        super(FocalLoss,self).__init__()
-        self.cfg = cfg
-        alpha = cfg.loss.focal_loss.alpha
-        gamma = cfg.loss.focal_loss.gamma
-        self.size_average = cfg.loss.focal_loss.size_average
-        num_classes = cfg.model.classes
+        super(_FocalLoss,self).__init__()
+        self.size_average = size_average
         if isinstance(alpha,list):
             assert len(alpha)==num_classes
             alpha /= np.sum(alpha) # setting the value in range of [0, 1]
@@ -41,7 +45,7 @@ class FocalLoss(torch.nn.Module):
 
             # classification task
             # print("Focal loss alpha={}, the weight for each class is the same".format(alpha))
-            self.alpha  += alpha
+            self.alpha += alpha
 
             # detection task # 如果α为一个常数,则降低第一类的影响,在目标检测中背景为第一类
             # print(" --- Focal_loss alpha = {} ,将对背景类进行衰减,请在目标检测任务中使用 --- ".format(alpha))

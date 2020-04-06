@@ -5,7 +5,8 @@ from .build import LOSS_FN_REGISTRY
 
 __all__ = [
     'CrossEntropy',
-    'CrossEntropyLabelSmooth'
+    'CrossEntropyLabelSmooth',
+    '_CrossEntropyLabelSmooth'
 ]
 
 @LOSS_FN_REGISTRY.register()
@@ -19,16 +20,20 @@ def CrossEntropy(cfg):
     return torch.nn.CrossEntropyLoss(weight=weight)
 
 @LOSS_FN_REGISTRY.register()
-class CrossEntropyLabelSmooth(torch.nn.Module):
-    def __init__(self, cfg):
-        super(CrossEntropyLabelSmooth, self).__init__()
-        try:
-            self.label_smoothing = cfg.loss.label_smoothing
-        except:
-            self.label_smoothing = 0.1
+def CrossEntropyLabelSmooth(cfg):
+    try:
+        label_smoothing = cfg.loss.label_smoothing
+    except:
+        label_smoothing = 0.1
+    return _CrossEntropyLabelSmooth(label_smoothing)
+
+class _CrossEntropyLabelSmooth(torch.nn.Module):
+    def __init__(self, label_smoothing):
+        super(_CrossEntropyLabelSmooth, self).__init__()
+        self.label_smoothing = label_smoothing
 
     def forward(self, pred, target):
-        logsoftmax = torch.nn.LogSoftmax()
+        logsoftmax = torch.nn.LogSoftmax(dim=1)
         n_classes = pred.size(1)
         # convert to one-hot
         target = torch.unsqueeze(target, 1)
