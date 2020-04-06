@@ -1,3 +1,4 @@
+import random
 from .config import CfgNode as CN
 
 _C = CN()
@@ -46,6 +47,51 @@ _C.transforms.tensor.random_erasing.p = 0.5
 _C.transforms.tensor.random_erasing.scale = (0.02, 0.3) # range of proportion of erased area against input image.
 _C.transforms.tensor.random_erasing.ratio = (0.3, 3.3), # range of aspect ratio of erased area.
 
+
+# ---------------------------------------------------------------------------- #
+# albumentations transforms (abtfs)
+# ---------------------------------------------------------------------------- #
+
+_C.abtfs = CN()
+_C.abtfs.random_grid_shuffle = CN()
+_C.abtfs.random_grid_shuffle.enable = 0
+_C.abtfs.random_grid_shuffle.grid = 2
+
+_C.abtfs.channel_shuffle = CN()
+_C.abtfs.channel_shuffle.enable = 0
+
+_C.abtfs.channel_dropout = CN()
+_C.abtfs.channel_dropout.enable = 0
+_C.abtfs.channel_dropout.drop_range = (1, 1)
+_C.abtfs.channel_dropout.fill_value = 127
+
+_C.abtfs.noise = CN()
+_C.abtfs.noise.enable = 1
+
+_C.abtfs.blur = CN()
+_C.abtfs.blur.enable = 0
+
+_C.abtfs.rotate = CN()
+_C.abtfs.rotate.enable = 1
+
+_C.abtfs.bright = CN()
+_C.abtfs.bright.enable = 1
+
+_C.abtfs.distortion = CN()
+_C.abtfs.distortion.enable = 0
+
+_C.abtfs.hue = CN()
+_C.abtfs.hue.enable = 0
+
+_C.abtfs.cutout = CN()
+_C.abtfs.cutout.enable = 1
+_C.abtfs.cutout.num_holes = 10
+_C.abtfs.cutout.size = 20
+_C.abtfs.cutout.fill_value = 127
+
+# ---------------------------------------------------------------------------- #
+# torchvision transforms
+# ---------------------------------------------------------------------------- #
 
 ## transforms for PIL image
 _C.transforms.img = CN()
@@ -120,8 +166,6 @@ _C.model.name = 'Resnet50'
 _C.model.classes = 10
 _C.model.pretrained = True
 _C.model.finetune = False
-_C.model.features = ['f4', ]
-_C.model.features_fusion = 'sum'
 
 
 # ---------------------------------------------------------------------------- #
@@ -131,6 +175,7 @@ _C.optim = CN()
 _C.optim.name = 'adam'
 _C.optim.momentum = 0.9
 _C.optim.base_lr = 0.001
+# _C.optim.lr = _C.optim.base_lr # will changed in v0.3.0.0
 _C.optim.weight_decay = 0.0005
 
 # scheduler
@@ -140,6 +185,10 @@ _C.optim.scheduler.gamma = 0.1 # decay factor
 
 # for CosineAnnealingLR
 _C.optim.scheduler.t_max = 10 
+
+# for CosineAnnealingLR
+_C.optim.scheduler.t_0 = 5
+_C.optim.scheduler.t_mul = 20
 
 # for ReduceLROnPlateau
 _C.optim.scheduler.mode = 'min' # min for loss, max for acc
@@ -152,6 +201,7 @@ _C.optim.scheduler.step_size = 10
 # for MultiStepLR
 _C.optim.scheduler.milestones = [10, 25, 35, 50]
 
+# _C.optimizer = _C.optim # enhance compatibility. will changed in v0.3.0.0
 # ---------------------------------------------------------------------------- #
 # loss
 # ---------------------------------------------------------------------------- #
@@ -172,7 +222,7 @@ _C.hooks = CN()
 ## EarlyStopping
 _C.hooks.early_stopping = CN()
 _C.hooks.early_stopping.setting = 2 # 0: True 1: False 2: custom
-_C.hooks.early_stopping.monitor = 'val_loss'
+_C.hooks.early_stopping.monitor = 'valid_loss'
 _C.hooks.early_stopping.min_delta = 0.
 _C.hooks.early_stopping.patience = 10
 _C.hooks.early_stopping.mode = 'min'
@@ -182,7 +232,7 @@ _C.hooks.early_stopping.verbose = 1
 _C.hooks.model_checkpoint = CN()
 _C.hooks.model_checkpoint.setting = 0 # 0: True 1: False 2: custom
 _C.hooks.model_checkpoint.filepath = '' # the empty file path is recommended
-_C.hooks.model_checkpoint.monitor = 'val_loss'
+_C.hooks.model_checkpoint.monitor = 'valid_loss'
 _C.hooks.model_checkpoint.mode = 'min'
 _C.hooks.model_checkpoint.verbose = 1
 
@@ -206,7 +256,7 @@ _C.trainer.process_position = 0
 _C.trainer.num_nodes = 1
 _C.trainer.gpus = [] # list
 _C.trainer.log_gpu_memory = ""
-_C.trainer.show_progress_bar = True
+_C.trainer.show_progress_bar = False
 _C.trainer.overfit_pct = 0.0 # if 0<overfit_pct<1, (e.g. overfit_pct = 0.1) then train, val, test only 10% data.
 _C.trainer.track_grad_norm = -1 # -1 no tracking. Otherwise tracks that norm. if equals to 2, then 2-norm will be traced
 _C.trainer.check_val_every_n_epoch = 1
@@ -256,7 +306,7 @@ _C.log.name = 'log.txt'
 # Misc 
 # ---------------------------------------------------------------------------- #
 
-_C.SEED = 666
+_C.SEED = random.randint(0, 10000)
 _C.DEFAULT_CUDNN_BENCHMARK = True
 
 _C.topk = [1, 3] # save the top k results., e.g. acc@1 and acc@3

@@ -27,11 +27,14 @@ def CIFAR10(cfg):
     return _CIFAR10(root=root, train=is_train, transform=transform.transform, download=True)
 
 class FakeData(torch.utils.data.Dataset):
-    def __init__(self, size=64, num=16):
-        self.size = size
+    def __init__(self, size=64, num=100):
+        if isinstance(size, int):
+            self.size = [size, size]
+        elif isinstance(size, list):
+            self.size = size
         self.num = num
-        self.data = torch.rand(num, 3, size, size)
-        self.labels = torch.randint(0,10, (num,))
+        self.data = torch.rand(num, 3, *size)
+        self.labels = torch.randint(0, 10, (num,))
 
 
     def __getitem__(self, index):
@@ -42,4 +45,5 @@ class FakeData(torch.utils.data.Dataset):
 
 @DATASET_REGISTRY.register()
 def fakedata(cfg):
-    return FakeData()
+    size = cfg.input.size
+    return FakeData(size)

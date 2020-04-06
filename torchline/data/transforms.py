@@ -7,7 +7,6 @@ import random
 import torchvision
 from torchvision import transforms
 from . import autoaugment
-from .data_utils import Cutout, RandomErasing
 from torchline.utils import Registry, Logger
 
 TRANSFORMS_REGISTRY = Registry('transforms')
@@ -57,7 +56,15 @@ class BaseTransforms(object):
         self.is_train = cfg.dataset.is_train
         
     def get_transform(self):
-        raise NotImplementedError
+        if not self.is_train: 
+            self.logger_print.info('Generating validation transform ...')
+            transform = self.valid_transform
+            self.logger_print.info(f'Valid transform={transform}')
+        else:
+            self.logger_print.info('Generating training transform ...')
+            transform = self.train_transform
+            self.logger_print.info(f'Train transform={transform}')
+        return transform
 
     @property
     def valid_transform(self):
@@ -71,6 +78,7 @@ class BaseTransforms(object):
 @TRANSFORMS_REGISTRY.register()
 class DefaultTransforms(BaseTransforms):
     def __init__(self, cfg):
+        super(DefaultTransforms, self).__init__(cfg)
         self.is_train = cfg.dataset.is_train
         self.mean = cfg.transforms.tensor.normalization.mean
         self.std = cfg.transforms.tensor.normalization.std
@@ -79,19 +87,6 @@ class DefaultTransforms(BaseTransforms):
         self.min_edge_size = min(self.img_size)
         self.normalize = transforms.Normalize(self.mean, self.std)
         self.transform = self.get_transform()
-
-    def get_transform(self):
-        # validation transform
-        if not self.is_train: 
-            self.logger_print.info('Generating validation transform ...')
-            transform = self.valid_transform
-            self.logger_print.info(f'Valid transform={transform}')
-        else:
-            self.logger_print.info('Generating training transform ...')
-            transform = self.train_transform
-            self.logger_print.info(f'Train transform={transform}')
-        return transform
-
 
     @property
     def valid_transform(self):
@@ -108,8 +103,7 @@ class DefaultTransforms(BaseTransforms):
         if self.cfg.transforms.img.aug_imagenet:
             self.logger_print.info('Using imagenet augmentation')
             transform = transforms.Compose([
-                transforms.Resize(self.min_edge_size+1),
-                transforms.RandomCrop(self.min_edge_size, padding=self.padding),
+                transforms.Resize(self.img_size),
                 autoaugment.ImageNetPolicy(),
                 transforms.ToTensor(),
                 self.normalize
@@ -118,8 +112,7 @@ class DefaultTransforms(BaseTransforms):
         elif self.cfg.transforms.img.aug_cifar:
             self.logger_print.info('Using cifar augmentation')
             transform = transforms.Compose([
-                transforms.Resize(self.min_edge_size+1),
-                transforms.RandomCrop(self.min_edge_size, padding=self.padding),
+                transforms.Resize(self.img_size),
                 autoaugment.CIFAR10Policy(),
                 transforms.ToTensor(),
                 self.normalize
@@ -128,7 +121,6 @@ class DefaultTransforms(BaseTransforms):
         else:
             transform = self.read_transform_from_cfg()
         return transform
-
 
     def read_transform_from_cfg(self):
         transform_list = []
@@ -139,7 +131,7 @@ class DefaultTransforms(BaseTransforms):
         if img_transforms.random_resized_crop.enable:
             transform_list.append(transforms.RandomResizedCrop(self.img_size))
         elif img_transforms.resize.enable:
-            transform_list.append(transforms.Resize(self.min_edge_size))
+            transform_list.append(transforms.Resize(self.img_size))
         if img_transforms.random_crop.enable:
             transform_list.append(transforms.RandomCrop(self.min_edge_size, padding=self.padding))
         elif img_transforms.center_crop.enable:

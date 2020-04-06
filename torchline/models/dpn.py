@@ -55,7 +55,8 @@ class DPN(nn.Module):
         self.layer2 = self._make_layer(in_planes[1], out_planes[1], num_blocks[1], dense_depth[1], stride=2)
         self.layer3 = self._make_layer(in_planes[2], out_planes[2], num_blocks[2], dense_depth[2], stride=2)
         self.layer4 = self._make_layer(in_planes[3], out_planes[3], num_blocks[3], dense_depth[3], stride=2)
-        self.linear = nn.Linear(out_planes[3]+(num_blocks[3]+1)*dense_depth[3], num_classes)
+        self.g_avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.last_linear = nn.Linear(out_planes[3]+(num_blocks[3]+1)*dense_depth[3], num_classes)
 
     def _make_layer(self, in_planes, out_planes, num_blocks, dense_depth, stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -65,17 +66,23 @@ class DPN(nn.Module):
             self.last_planes = out_planes + (i+2) * dense_depth
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def features(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
         out = self.layer4(out)
-        out = F.avg_pool2d(out, 4)
-        out = out.view(out.size(0), -1)
-        out = self.linear(out)
         return out
 
+    def logits(self, x):
+        out = self.g_avg_pool(x)
+        out = self.last_linear(out.view(out.size(0), -1))
+        return out
+
+    def forward(self, x):
+        out = self.features(x)
+        out = self.logits(out)
+        return out
 
 @META_ARCH_REGISTRY.register()
 class DPN26(DPN):

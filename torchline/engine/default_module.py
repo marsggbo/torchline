@@ -20,8 +20,9 @@ import torchvision
 from torchline.data import build_data, build_sampler
 from torchline.losses import build_loss_fn
 from torchline.models import build_model
-from torchline.utils import topk_acc
+from torchline.utils import topk_acc, AverageMeterGroup
 from .build import MODULE_REGISTRY
+from .utils import generate_optimizer, generate_scheduler
 
 __all__ = [
     'DefaultModule'
@@ -50,28 +51,27 @@ class DefaultModule(LightningModule):
 
         # build model
         self.model = self.build_model(cfg)
+        self.train_meters = AverageMeterGroup()
+        self.valid_meters = AverageMeterGroup()
 
     # ---------------------
     # model SETUP
     # ---------------------
-    @classmethod
-    def build_model(cls, cfg):
+    def build_model(self, cfg):
         """
         Layout model
         :return:
         """
         return build_model(cfg)
 
-    @classmethod
-    def build_loss_fn(cls, cfg):
+    def build_loss_fn(self, cfg):
         """
         Layout loss_fn
         :return:
         """
         return build_loss_fn(cfg)
 
-    @classmethod
-    def build_data(cls, cfg, is_train):
+    def build_data(self, cfg, is_train):
         """
         Layout training dataset
         :return:
@@ -81,8 +81,7 @@ class DefaultModule(LightningModule):
         cfg.freeze()
         return build_data(cfg)
 
-    @classmethod
-    def build_sampler(cls, cfg, is_train):
+    def build_sampler(self, cfg, is_train):
         """
         Layout training dataset
         :return:
@@ -93,6 +92,47 @@ class DefaultModule(LightningModule):
         return build_sampler(cfg)
 
     # ---------------------
+    # Hooks
+    # ---------------------
+
+    def on_train_start(self):
+        ckpt_path = self.trainer.resume_from_checkpoint
+        print(ckpt_path)
+        if ckpt_path:
+            if os.path.exists(ckpt_path):
+                ckpt = torch.load(ckpt_path)
+                best = ckpt['checkpoint_callback_best']
+                self.trainer.logger_print.info(f"The best result of the ckpt is {best}")
+            else:
+                print(f'{ckpt_path} not exists')
+                raise NotImplementedError
+
+    def on_epoch_start(self):
+        if not self.cfg.trainer.show_progress_bar:
+            # print current lr
+            if isinstance(self.trainer.optimizers, list):
+                if len(self.trainer.optimizers) == 1:
+                    optimizer = self.trainer.optimizers[0]
+                    lr = optimizer.param_groups[0]["lr"]
+                    print(f"lr={lr:.4e}")
+                else:
+                    for index, optimizer in enumerate(self.trainer.optimizers):
+                        lr = optimizer.param_groups[0]["lr"]
+                        name = str(optimizer).split('(')[0].strip()
+                        self.trainer.logger_print.info(f"lr of {name}_{index} is {lr:.4e} ")
+            else:
+                lr = self.trainer.optimizers.param_groups[0]["lr"]
+                print(f"lr={lr:.4e}")
+
+    def on_epoch_end(self):
+        if not self.cfg.trainer.show_progress_bar:
+            self.trainer.logger_print.info(f'Final Train: {self.train_meters}')
+            self.trainer.logger_print.info(f'FInal Valid: {self.valid_meters}')
+            self.trainer.logger_print.info("===========================\n")
+            self.train_meters = AverageMeterGroup()
+            self.valid_meters = AverageMeterGroup()
+
+    # ---------------------
     # TRAINING
     # ---------------------
     
@@ -101,14 +141,38 @@ class DefaultModule(LightningModule):
         No special modification required for lightning, define as you normally would
         :param x:
         :return:
-        """
-
-        logits = self.model(x)
+        
+        return middle features
+        features = self.model.features(x)
+        logits = self.model.logits(features)
         return logits
+        """
+        return self.model(x)
 
     def loss(self, predictions, gt_labels):
         loss_fn = self.build_loss_fn(self.cfg)
         return loss_fn(predictions, gt_labels)
+
+    def print_log(self, batch_idx, is_train, inputs, meters, save_examples=False):
+        if is_train:
+            _type = 'Train'
+            all_step = self.trainer.num_training_batches
+        else:
+            _type = 'Valid'
+            all_step = self.trainer.total_batches - self.trainer.num_training_batches
+
+        flag = batch_idx % self.cfg.trainer.log_save_interval == 0
+        if not self.trainer.show_progress_bar and flag:
+            crt_epoch, crt_step = self.trainer.current_epoch, batch_idx
+            all_epoch = self.trainer.max_epochs
+            log_info = f"{_type} Epoch {crt_epoch}/{all_epoch} step {crt_step}/{all_step} {meters}" 
+            self.trainer.logger_print.info(log_info)
+
+        if self.current_epoch==0 and batch_idx==0 and save_examples:
+            if not os.path.exists('train_valid_samples'):
+                os.makedirs('train_valid_samples')
+            for i, img in enumerate(inputs[:5]):
+                torchvision.transforms.ToPILImage()(img.cpu()).save(f'./train_valid_samples/{_type}_img{i}.jpg')
 
     def training_step(self, batch, batch_idx):
         """
@@ -116,6 +180,7 @@ class DefaultModule(LightningModule):
         :param batch:
         :return:
         """
+
         # forward pass
         inputs, gt_labels = batch
         predictions = self.forward(inputs)
@@ -126,24 +191,27 @@ class DefaultModule(LightningModule):
         # acc
         acc_results = topk_acc(predictions, gt_labels, self.cfg.topk)
         tqdm_dict = {}
-        for i, k in enumerate(self.cfg.topk):
-            tqdm_dict[f'train_acc_{k}'] = acc_results[i]
+
+        if self.on_gpu:
+            acc_results = [torch.tensor(x).to(loss_val.device.index) for x in acc_results]
 
         # in DP mode (default) make sure if result is scalar, there's another dim in the beginning
         if self.trainer.use_dp or self.trainer.use_ddp2:
             loss_val = loss_val.unsqueeze(0)
+            acc_results = [x.unsqueeze(0) for x in acc_results]
 
-        tqdm_dict.update({'train_loss': loss_val})
+        tqdm_dict['train_loss'] = loss_val
+        for i, k in enumerate(self.cfg.topk):
+            tqdm_dict[f'train_acc_{k}'] = acc_results[i]
+
         output = OrderedDict({
             'loss': loss_val,
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
         })
-        if self.current_epoch==0 and batch_idx==0:
-            if not os.path.exists('train_valid_samples'):
-                os.makedirs('train_valid_samples')
-            for i, img in enumerate(inputs[:5]):
-                torchvision.transforms.ToPILImage()(img.cpu()).save(f'./train_valid_samples/train_img{i}.jpg')
+
+        self.train_meters.update({key: val.item() for key, val in tqdm_dict.items()})
+        self.print_log(batch_idx, True, inputs, self.train_meters)
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
@@ -173,15 +241,13 @@ class DefaultModule(LightningModule):
             val_acc_k = val_acc_k.unsqueeze(0)
         
         output = OrderedDict({
-            'val_loss': loss_val,
-            'val_acc_1': val_acc_1,
-            f'val_acc_{self.cfg.topk[-1]}': val_acc_k,
+            'valid_loss': loss_val,
+            'valid_acc_1': val_acc_1,
+            f'valid_acc_{self.cfg.topk[-1]}': val_acc_k,
         })
-        if self.current_epoch==0 and batch_idx==0:
-            if not os.path.exists('train_valid_samples'):
-                os.makedirs('train_valid_samples')
-            for i, img in enumerate(inputs[:5]):
-                torchvision.transforms.ToPILImage()(img.cpu()).save(f'./train_valid_samples/train_img{i}.jpg')
+        tqdm_dict = {k: v for k, v in dict(output).items()}
+        self.valid_meters.update({key: val.item() for key, val in tqdm_dict.items()})
+        self.print_log(batch_idx, False, inputs, self.valid_meters)
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
@@ -196,33 +262,8 @@ class DefaultModule(LightningModule):
         # we return just the average in this case (if we want)
         # return torch.stack(outputs).mean()
 
-        val_loss_mean = 0
-        val_acc_1_mean = 0
-        val_acc_k_mean = 0
-        for output in outputs:
-            val_loss = output['val_loss']
-
-            # reduce manually when using dp
-            if self.trainer.use_dp or self.trainer.use_ddp2:
-                val_loss = torch.mean(val_loss)
-            val_loss_mean += val_loss
-
-            # reduce manually when using dp
-            val_acc_1 = output['val_acc_1']
-            val_acc_k = output[f'val_acc_{self.cfg.topk[-1]}']
-            if self.trainer.use_dp or self.trainer.use_ddp2:
-                val_acc_1 = torch.mean(val_acc_1)
-                val_acc_k = torch.mean(val_acc_k)
-
-            val_acc_1_mean += val_acc_1
-            val_acc_k_mean += val_acc_k
-
-        val_loss_mean /= len(outputs)
-        val_acc_1_mean /= len(outputs)
-        val_acc_k_mean /= len(outputs)
-        tqdm_dict = {'val_loss': val_loss_mean, 'val_acc_1': val_acc_1_mean, 
-                                                f'val_acc_{self.cfg.topk[-1]}': val_acc_k_mean}
-        result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'val_loss': val_loss_mean}
+        tqdm_dict = {key: val.avg for key, val in self.valid_meters.meters.items()}
+        result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'valid_loss': self.valid_meters.meters['valid_loss'].avg}
         return result
 
     def test_step(self, batch, batch_idx):
@@ -234,59 +275,36 @@ class DefaultModule(LightningModule):
     # ---------------------
     # TRAINING SETUP
     # ---------------------
-    def generate_optimizer(self):
-        '''
-        return torch.optim.Optimizer
-        '''
-        optim_name = self.cfg.optim.name
-        momentum = self.cfg.optim.momentum
-        weight_decay = self.cfg.optim.weight_decay
-        lr = self.cfg.optim.base_lr
-        if optim_name.lower() == 'sgd':
-            return torch.optim.SGD(self.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
-        elif optim_name.lower() == 'adadelta':
-            return torch.optim.Adagrad(self.parameters(), lr=lr, weight_decay=weight_decay)
-        elif optim_name.lower() == 'adam': 
-            return torch.optim.Adam(self.parameters(), lr=lr, weight_decay=weight_decay)
-        elif optim_name.lower() == 'rmsprop':
-            return torch.optim.RMSprop(self.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
-        else:
-            print(f"{optim_name} not implemented")
-            raise NotImplementedError
-
-    def generate_scheduler(self, optimizer):
-        '''
-        return torch.optim.lr_scheduler
-        '''
-        scheduler_name = self.cfg.optim.scheduler.name
+    @classmethod
+    def parse_cfg_for_scheduler(cls, cfg, scheduler_name):
         if scheduler_name.lower() == 'CosineAnnealingLR'.lower():
-            return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.optim.scheduler.t_max)
+            params = {'T_max': cfg.optim.scheduler.t_max}
+        elif scheduler_name.lower() == 'CosineAnnealingWarmRestarts'.lower():
+            params = {'T_0': cfg.optim.scheduler.t_0, 'T_mult': cfg.optim.scheduler.t_mul}
         elif scheduler_name.lower() == 'StepLR'.lower():
-            step_size = self.cfg.optim.scheduler.step_size
-            gamma = self.cfg.optim.scheduler.gamma
-            return optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)
+            params = {'step_size': cfg.optim.scheduler.step_size, 'gamma': cfg.optim.scheduler.gamma}
         elif scheduler_name.lower() == 'MultiStepLR'.lower():
-            milestones = self.cfg.optim.scheduler.milestones
-            gamma = self.cfg.optim.scheduler.gamma
-            return optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
+            params = {'milestones': cfg.optim.scheduler.milestones, 'gamma': cfg.optim.scheduler.gamma}
         elif scheduler_name.lower() == 'ReduceLROnPlateau'.lower():
-            mode = self.cfg.optim.scheduler.mode
-            patience = self.cfg.optim.scheduler.patience
-            verbose = self.cfg.optim.scheduler.verbose
-            factor = self.cfg.optim.scheduler.gamma
-            return optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode=mode, patience=patience, 
-                                                        verbose=verbose, factor=factor)
+            params = {'mode': cfg.optim.scheduler.mode, 'patience': cfg.optim.scheduler.patience, 
+                      'verbose': cfg.optim.scheduler.verbose, 'factor': cfg.optim.scheduler.gamma}
         else:
             print(f"{scheduler_name} not implemented")
             raise NotImplementedError
+        return params
 
     def configure_optimizers(self):
         """
         return whatever optimizers we want here
         :return: list of optimizers
         """
-        optimizer = self.generate_optimizer()
-        scheduler = self.generate_scheduler(optimizer)
+        optim_name = self.cfg.optim.name
+        momentum = self.cfg.optim.momentum
+        weight_decay = self.cfg.optim.weight_decay
+        lr = self.cfg.optim.base_lr
+        optimizer = generate_optimizer(self.model, optim_name, lr, momentum, weight_decay)
+        scheduler_params = self.parse_cfg_for_scheduler(self.cfg, self.cfg.optim.scheduler.name)
+        scheduler = generate_scheduler(optimizer, self.cfg.optim.scheduler.name, **scheduler_params)
         return [optimizer], [scheduler]
 
     def __dataloader(self, is_train):
@@ -325,11 +343,3 @@ class DefaultModule(LightningModule):
     def test_dataloader(self):
         logging.info('test data loader called')
         return self.__dataloader(is_train=False)
-
-    # @classmethod
-    # def load_from_checkpoint(cls, checkpoint_path):
-    #     checkpoint = torch.load(checkpoint_path, map_location=lambda storage, loc: storage)
-    #     model = cls(cls.cfg)
-    #     model.load_state_dict(checkpoint['state_dict'])
-    #     model.on_load_checkpoint(checkpoint)
-    #     return model

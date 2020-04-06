@@ -39,8 +39,6 @@
 ### 2019.12.19更新信息
 - 修改各种路径参数设置逻辑（详见[skin/ReadMe.md](projects/skin/ReadMe.md)）
 
-### todo list
-
 
 ## v0.2
 
@@ -50,6 +48,56 @@
 - 抽象化出`trainer`类
 - `trainer`负责整个计算逻辑, `engine`下定义的`DefaultModule`用来指定具体的步骤包括：模型，优化器，训练、验证、测试过程，以及数据的读取等，`models`中则是定义了具体的模型，如resnet等。
 
+## v0.2.2
+
+- 代码逻辑更加清晰
+- 修复日志bug，使用更加灵活
+
+## v0.2.2.2
+
+- config输出格式化
+
+## v0.2.3.0
+
+- 增加新的输出日志的方式（即logging），日志可保存到文件方便查看。之前默认使用tqdm，一个比较大的缺点时无法清晰的看到模型是否开始收敛。
+- 引入`AverageMeterGroup`等来记录各项指标，能更清晰地看出整体收敛趋势
+- 更新`fake_data` demo
+- 修复`CosineAnnealingLR` 存在的bug
+
+## v0.2.3.1
+- 优化`AverageMeterGroup`输出格式，方便阅读
+
+## v0.2.3.2
+- 优化优化器代码，增加可扩展性
+- 增加学习率热启动(`CosineAnnealingWarmRestarts`)
+
+## v0.2.3.3
+- 优化resume
+- 增加albumentations数据增广操作
+- 修改之前的resize和crop之间的逻辑关系
+
+## v0.2.3.4
+- 抽象化optimizer和scheduler定义，方便从外部直接调用
+- 添加计算模型大小的函数
+
+## v0.2.4.0
+- 增加大量SOTA模型结构，如Mnasnet, mobilenet等
+- 统一模型结构(features, logits, forward, last_linear)
+
+## v0.2.4.1
+- 修改单机多卡训练bug 
+  - 此模式夏batch size必须是gpu的整数倍，否则汇报如下错误：
+  ```Python
+  ValueError: only one element tensors can be converted to Python scalars
+  ```
+- 规范化两种日志模式： tqdm和logging
+
+## v0.2.4.2
+- 修复单机多卡训练时的bug
+- 修改和统一model forward函数： features+logits
+
+# TODO list 
+
 
 - [x] 弄清楚logging机制
 - [x] save和load模型，优化器参数
@@ -58,7 +106,29 @@
 - [x] 能否预测单张图片？
 - [x] 构建一个简单的API接口
 - [x] 进一步完善包导入
-- [ ] 完善使用文档
 - [x] 设置训练epoch数量
 - [X] 内建更多SOTA模型
+- [x] 每个epoch输出学习率大小
+- [x] resume时输出checkpoint的结果
+- [x] 如果resume，则自动匹配checkpoints等路径
+- [x] 优化输出日志信息
+- [x] 使用albumentations做数据增强
+- [x] transforms resize和randomcrop逻辑关系
+- [x] 从engine中抽离出optimizer和scheduler
+- [x] ~~resnet结构可能有问题，resnet50应该有98MB，但是实现只有89.7~~。（没有错，只是因为计算时将classes设置成了10，所以导致了误差）
+- [x] 单机多卡多GPU测试
+- [x] ~~考虑是否将finetune设置内嵌到模型中~~ (取消设置，避免模型代码臃肿)
+- [ ] 多GPU运行时日志会因为多线程而导致先后输出不同batch的结果，需要在结果整合后再输出结果，可以考虑将`print_log`放到`on_batch_end`里去
 - [ ] 设置更多默认的数据集
+- [ ] 完善使用文档
+- [ ] 评估使用hydra代替yacs的必要性
+- [ ] 增加config参数鲁棒性和兼容性
+- [ ] 多机多卡测试
+- [ ] template project. 可快速基于torchline创建一个新项目
+
+
+## v3.0 todo list
+- [ ] 适配pytorchlightning 0.7.0版本 # 在大版本v0.3.0.0中更新
+- [ ] 规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新
+- [ ] albumentations和torchvision读取图片使用的分别是cv2和PIL，数据格式分别是numpy和PIL.Image，后面需要考虑如何统一格式。
+- [ ] 增加`Module`中`print_log`通用性

@@ -1,67 +1,157 @@
-input:
-    size: (64, 64)
-model:
-    name: 'Resnet50'
-    classes: 10
+DEFAULT_CUDNN_BENCHMARK: True
+SEED: 666
+VERSION: 1
+dataloader:
+    num_workers: 0
+    sample_test: 'default'
+    sample_train: 'default'
 dataset:
-    name: 'fakedata'
-    dir: './datasets/cifar10'
     batch_size: 1
+    dir: './datasets/cifar10'
+    is_train: False
+    name: 'fakedata'
+    test_list: './datasets/test_skin10.txt'
+    train_list: './datasets/train_skin10.txt'
+    valid_list: './datasets/valid_skin10.txt'
+hooks:
+    early_stopping:
+        min_delta: 0.0
+        mode: 'max'
+        monitor: 'valid_acc_1'
+        patience: 20
+        setting: 2
+        verbose: 1
+    model_checkpoint:
+        filepath: ''
+        mode: 'max'
+        monitor: 'valid_acc_1'
+        setting: 2
+        verbose: 1
+input:
+    size: (16, 16)
+label_transforms:
+    name: 'default'
+log:
+    name: ''
+    path: ''
+loss:
+    class_weight: []
+    focal_loss:
+        alpha: []
+        gamma: 2
+        size_average: True
+    label_smoothing: 0.1
+    name: 'CrossEntropy'
+model:
+    classes: 10
+    finetune: False
+    name: 'FakeNet'
+    pretrained: True
+module:
+    name: 'DefaultModule'
 optim:
-    name: 'sgd'
     base_lr: 0.1
+    momentum: 0.9
+    name: 'sgd'
     scheduler:
-        name: 'MultiStepLR'
-        milestones: [150, 250]
         gamma: 0.1
+        milestones: [150, 250]
+        mode: 'min'
+        name: 'MultiStepLR'
+        patience: 10
+        step_size: 10
+        t_max: 10
+        verbose: True
+    weight_decay: 0.0005
+predict_only:
+    load_ckpt:
+        checkpoint_path: ''
+    load_metric:
+        map_location: ''
+        on_gpu: True
+        tags_csv: ''
+        weights_path: ''
+    to_pred_file_path: ''
+    type: 'ckpt'
+topk: [1, 3]
+trainer:
+    accumulate_grad_batches: 1
+    amp_level: 'O1'
+    check_val_every_n_epoch: 1
+    default_save_path: './output_fakedata'
+    distributed_backend: 'dp'
+    fast_dev_run: False
+    gpus: []
+    gradient_clip_val: 0
+    log_gpu_memory: ''
+    log_save_interval: 100
+    logger:
+        mlflow:
+            experiment_name: 'torchline_logs'
+            tracking_uri: './output'
+        setting: 0
+        test_tube:
+            name: 'torchline_logs'
+            save_dir: './output_fakedata'
+            version: -1
+        type: 'test_tube'
+    max_epochs: 100
+    min_epochs: 1
+    name: 'DefaultTrainer'
+    num_nodes: 1
+    num_sanity_val_steps: 5
+    overfit_pct: 0.0
+    print_nan_grads: True
+    process_position: 0
+    resume_from_checkpoint: ''
+    row_log_interval: 10
+    show_progress_bar: False
+    test_percent_check: 1.0
+    track_grad_norm: -1
+    train_percent_check: 1.0
+    truncated_bptt_steps: ''
+    use_amp: False
+    val_check_interval: 1.0
+    val_percent_check: 1.0
+    weights_save_path: ''
+    weights_summary: ''
 transforms:
-    tensor:
-        normalization: 
-            mean: [0.4914, 0.4822, 0.4465]
-            std: [0.2023, 0.1994, 0.2010]
     img:
         aug_cifar: False
-        resize:
+        aug_imagenet: False
+        center_crop:
             enable: 0
+        color_jitter:
+            brightness: 0.0
+            contrast: 0.0
+            enable: 0
+            hue: 0.0
+            saturation: 0.0
         random_crop:
             enable: 1
             padding: 4
         random_horizontal_flip:
             enable: 1
             p: 0.5
+        random_resized_crop:
+            enable: 0
+            ratio: (0.75, 1.3333333333333333)
+            scale: (0.5, 1.0)
+        random_rotation:
+            degrees: 10
+            enable: 0
         random_vertical_flip:
             enable: 0
             p: 0.5
-        random_rotation:
+        resize:
             enable: 0
-trainer:
-    default_save_path: './output_cifar10'
-    logger:
-        setting: 0
-        type: 'test_tube'
-        test_tube:
-            save_dir: './output_cifar10'
-            name: 'torchline_logs'
-            version: -1 # if <0, then use default version
-hooks:
-    early_stopping:
-        setting: 2
-        patience: 20
-        monitor: 'val_acc_1'
-        mode: 'max'
-    model_checkpoint:
-        setting: 2
-        monitor: 'val_acc_1'
-        mode: 'max'
-        filepath: ''
-topk: [1, 3]
-predict_only:
-    type: 'ckpt'
-    to_pred_file_path: '' # specify the path of images
-    load_ckpt:
-        checkpoint_path: '' # load_from_checkpoint
-    load_metric:
-        weights_path: '' # load_from_metrics
-        tags_csv: ''
-        on_gpu: True
-        map_location: 'cuda:0'
+    name: 'DefaultTransforms'
+    tensor:
+        normalization:
+            mean: [0.4914, 0.4822, 0.4465]
+            std: [0.2023, 0.1994, 0.201]
+        random_erasing:
+            enable: 0
+            p: 0.5
+            ratio: ((0.3, 3.3),)
+            scale: (0.02, 0.3)
