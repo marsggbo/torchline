@@ -322,7 +322,7 @@ class DefaultModule(LightningModule):
         loader = DataLoader(
             dataset=dataset,
             batch_size=batch_size,
-            shuffle=should_shuffle,
+            shuffle=should_shuffle if is_train else False,
             sampler=train_sampler,
             num_workers=self.cfg.dataloader.num_workers
         )
