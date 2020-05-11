@@ -21,7 +21,7 @@ class DefaultTrainer(Trainer):
         self.hparams = hparams
 
         self.logger = self._logger()
-        self.logger_print = Logger(__name__, cfg).getlogger()
+        self.logger_print = Logger(__name__, cfg.log.name).getlogger()
         self.early_stop_callback = self._early_stop_callback()
         self.checkpoint_callback = self._checkpoint_callback()
 

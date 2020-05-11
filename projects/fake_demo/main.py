@@ -63,7 +63,7 @@ if __name__ == '__main__':
     parent_parser = ArgumentParser(add_help=False)
 
     # gpu args
-    parent_parser.add_argument("--config_file", default="", metavar="FILE", help="path to config file")
+    parent_parser.add_argument("--config_file", default="./fake_cfg.yaml", metavar="FILE", help="path to config file")
     parent_parser.add_argument('--test_only', action='store_true', help='if true, return trainer.test(model). Validates only the test set')
     parent_parser.add_argument('--predict_only', action='store_true', help='if true run model(samples). Predict on the given samples.')
     parent_parser.add_argument( "opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)

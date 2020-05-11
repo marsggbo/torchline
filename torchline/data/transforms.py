@@ -52,9 +52,9 @@ def build_label_transforms(cfg):
 class BaseTransforms(object):
     def __init__(self, cfg):
         self.cfg = cfg
-        self.logger_print = Logger(__name__, cfg).getlogger()
+        self.logger_print = Logger(__name__, cfg.log.name).getlogger()
         self.is_train = cfg.dataset.is_train
-        
+
     def get_transform(self):
         if not self.is_train: 
             self.logger_print.info('Generating validation transform ...')

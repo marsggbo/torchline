@@ -132,6 +132,7 @@
 - [ ] 将`default_module`中的`parse_cfg_for_scheduler`解耦，放到`utils.py`文件中去
 - [ ] checkpoint将scheduler参数也保存，同时添加设置可以跳过optimizer或scheduler的restore
 - [ ] multi-gpus情况下日志会生成多份，打印信息也有这种情况
+- [ ] 文件结构重构
 
 
 ## v3.0 todo list

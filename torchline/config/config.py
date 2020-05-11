@@ -59,9 +59,6 @@ class CfgNode(_CfgNode):
         self.freeze()
 
         os.makedirs(self.log.path, exist_ok=True)
-        
-        # log.txt
-        logger_print = Logger(__name__, self).getlogger()
 
         # copy config file
         src_cfg_file = hparams.config_file # source config file
@@ -78,7 +75,7 @@ class CfgNode(_CfgNode):
         else:
             torch.backends.cudnn.benchmark = self.DEFAULT_CUDNN_BENCHMARK
 
-        logger_print.info("Running with full config:\n{}".format(self))
+        print("Running with full config:\n{}".format(self))
 
     def __str__(self):
         def _indent(s_, num_spaces):
