@@ -21,7 +21,7 @@ class CfgNode(_CfgNode):
                 version = max(versions)+1
             return version
 
-        save_dir=self.trainer.default_save_path
+        save_dir=self.trainer.default_root_dir
         logger_name=self.trainer.logger.test_tube.name
         path = os.path.join(save_dir, logger_name)
         if self.trainer.logger.setting==0:
@@ -52,16 +52,13 @@ class CfgNode(_CfgNode):
             self.log.name = os.path.join(self.log.path, 'log.txt')
         else:
             version = self._version()
-            save_dir = self.trainer.default_save_path
+            save_dir = self.trainer.default_root_dir
             logger_name = self.trainer.logger.test_tube.name
             self.log.path = os.path.join(save_dir, logger_name, f"version_{version}")
             self.log.name = os.path.join(self.log.path, 'log.txt')
         self.freeze()
 
         os.makedirs(self.log.path, exist_ok=True)
-        
-        # log.txt
-        logger_print = Logger(__name__, self).getlogger()
 
         # copy config file
         src_cfg_file = hparams.config_file # source config file
@@ -78,7 +75,7 @@ class CfgNode(_CfgNode):
         else:
             torch.backends.cudnn.benchmark = self.DEFAULT_CUDNN_BENCHMARK
 
-        logger_print.info("Running with full config:\n{}".format(self))
+        print("Running with full config:\n{}".format(self))
 
     def __str__(self):
         def _indent(s_, num_spaces):

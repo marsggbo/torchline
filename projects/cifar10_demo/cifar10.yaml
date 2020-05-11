@@ -35,7 +35,7 @@ transforms:
         random_rotation:
             enable: 0
 trainer:
-    default_save_path: './output_cifar10'
+    default_root_dir: './output_cifar10'
     logger:
         setting: 0
         type: 'test_tube'

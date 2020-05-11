@@ -176,7 +176,7 @@ trainer:
     accumulate_grad_batches: 1
     amp_level: 'O1'
     check_val_every_n_epoch: 1
-    default_save_path: './output_fakedata'
+    default_root_dir: './output_fakedata'
     distributed_backend: 'dp'
     fast_dev_run: False
     gpus: []

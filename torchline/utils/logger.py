@@ -10,17 +10,17 @@ __all__ = [
 ]
 
 class Logger(object):
-    def __init__(self, logger_name=None, cfg=None):
+    def __init__(self, logger_name=None, filename=None, *args, **kwargs):
         '''
             指定保存日志的文件路径，日志级别，以及调用文件
             将日志存入到指定的文件中
         '''
 
         # 创建一个logger
-        if cfg is None:
+        if filename is None:
             file = 'log.txt'
         else:
-            file = cfg.log.name
+            file = filename
         self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(logging.INFO)
         self.logger.propagate = False

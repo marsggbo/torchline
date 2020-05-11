@@ -102,36 +102,43 @@ class DefaultModule(LightningModule):
             if os.path.exists(ckpt_path):
                 ckpt = torch.load(ckpt_path)
                 best = ckpt['checkpoint_callback_best']
-                self.trainer.logger_print.info(f"The best result of the ckpt is {best}")
+                self.log_info(f"The best result of the ckpt is {best}")
             else:
                 print(f'{ckpt_path} not exists')
                 raise NotImplementedError
 
     def on_epoch_start(self):
-        if not self.cfg.trainer.show_progress_bar:
+        if not self.cfg.trainer.progress_bar_refresh_rate:
             # print current lr
             if isinstance(self.trainer.optimizers, list):
                 if len(self.trainer.optimizers) == 1:
                     optimizer = self.trainer.optimizers[0]
                     lr = optimizer.param_groups[0]["lr"]
-                    print(f"lr={lr:.4e}")
+                    self.log_info(f"lr={lr:.4e}")
                 else:
                     for index, optimizer in enumerate(self.trainer.optimizers):
                         lr = optimizer.param_groups[0]["lr"]
                         name = str(optimizer).split('(')[0].strip()
-                        self.trainer.logger_print.info(f"lr of {name}_{index} is {lr:.4e} ")
+                        self.log_info(f"lr of {name}_{index} is {lr:.4e} ")
             else:
                 lr = self.trainer.optimizers.param_groups[0]["lr"]
-                print(f"lr={lr:.4e}")
+                self.log_info(f"lr={lr:.4e}")
 
     def on_epoch_end(self):
-        if not self.cfg.trainer.show_progress_bar:
-            self.trainer.logger_print.info(f'Final Train: {self.train_meters}')
-            self.trainer.logger_print.info(f'FInal Valid: {self.valid_meters}')
-            self.trainer.logger_print.info("===========================\n")
+        if not self.cfg.trainer.progress_bar_refresh_rate:
+            self.log_info(f'Final Train: {self.train_meters}')
+            self.log_info(f'FInal Valid: {self.valid_meters}')
+            self.log_info("===========================\n")
             self.train_meters = AverageMeterGroup()
             self.valid_meters = AverageMeterGroup()
 
+    def log_info(self, *args, **kwargs):
+        if self.trainer.proc_rank == 0:
+            self.trainer.logger_print.info(*args, **kwargs)
+
+    def log_warning(self, *args, **kwargs):
+        if self.trainer.proc_rank == 0:
+            self.trainer.logger_print.warning(*args, **kwargs)
     # ---------------------
     # TRAINING
     # ---------------------
@@ -154,19 +161,18 @@ class DefaultModule(LightningModule):
         return loss_fn(predictions, gt_labels)
 
     def print_log(self, batch_idx, is_train, inputs, meters, save_examples=False):
-        if is_train:
-            _type = 'Train'
-            all_step = self.trainer.num_training_batches
-        else:
-            _type = 'Valid'
-            all_step = self.trainer.total_batches - self.trainer.num_training_batches
-
         flag = batch_idx % self.cfg.trainer.log_save_interval == 0
-        if not self.trainer.show_progress_bar and flag:
+        if not self.trainer.progress_bar_refresh_rate and flag:
+            if is_train:
+                _type = 'Train'
+                all_step = self.trainer.num_training_batches
+            else:
+                _type = 'Valid'
+                all_step = self.trainer.num_val_batches
             crt_epoch, crt_step = self.trainer.current_epoch, batch_idx
             all_epoch = self.trainer.max_epochs
             log_info = f"{_type} Epoch {crt_epoch}/{all_epoch} step {crt_step}/{all_step} {meters}" 
-            self.trainer.logger_print.info(log_info)
+            self.log_info(log_info)
 
         if self.current_epoch==0 and batch_idx==0 and save_examples:
             if not os.path.exists('train_valid_samples'):
@@ -322,7 +328,7 @@ class DefaultModule(LightningModule):
         loader = DataLoader(
             dataset=dataset,
             batch_size=batch_size,
-            shuffle=should_shuffle,
+            shuffle=should_shuffle if is_train else False,
             sampler=train_sampler,
             num_workers=self.cfg.dataloader.num_workers
         )

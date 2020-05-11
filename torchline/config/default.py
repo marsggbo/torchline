@@ -70,12 +70,18 @@ _C.abtfs.noise.enable = 1
 
 _C.abtfs.blur = CN()
 _C.abtfs.blur.enable = 0
+_C.abtfs.blur.blur_limit = 3
 
 _C.abtfs.rotate = CN()
 _C.abtfs.rotate.enable = 1
-
+_C.abtfs.rotate.p = 1
+_C.abtfs.rotate.shift_limit = 0.0625
+_C.abtfs.rotate.scale_limit = 0.2
+_C.abtfs.rotate.rotate_limit = 45
+                 
 _C.abtfs.bright = CN()
 _C.abtfs.bright.enable = 1
+_C.abtfs.bright.clip_limit = 1
 
 _C.abtfs.distortion = CN()
 _C.abtfs.distortion.enable = 0
@@ -250,47 +256,75 @@ _C.module.name = 'DefaultModule'
 
 _C.trainer = CN()
 _C.trainer.name = 'DefaultTrainer'
-_C.trainer.default_save_path = './output'
-_C.trainer.gradient_clip_val = 0
+_C.trainer.default_save_path = './output' # will be removed
+_C.trainer.default_root_dir = './output'
+_C.trainer.gradient_clip_val = 0 # 0 means don't clip.
 _C.trainer.process_position = 0
 _C.trainer.num_nodes = 1
 _C.trainer.gpus = [] # list
-_C.trainer.log_gpu_memory = ""
-_C.trainer.show_progress_bar = False
+_C.trainer.auto_select_gpus = False # If `auto_select_gpus` is enabled and `gpus` is an integer, pick available gpus automatically. 
+                                    # This is especially useful when GPUs are configured to be  in "exclusive mode", such that 
+                                    # only one process at a time can access them.
+_C.trainer.num_tpu_cores = '' # How many TPU cores to train on (1 or 8).
+_C.trainer.log_gpu_memory = "" # None, 'min_max', 'all'. Might slow performance
+_C.trainer.show_progress_bar = False # will be removed
+_C.trainer.progress_bar_refresh_rate = 0 # How often to refresh progress bar (in steps). Value ``0`` disables progress bar.
 _C.trainer.overfit_pct = 0.0 # if 0<overfit_pct<1, (e.g. overfit_pct = 0.1) then train, val, test only 10% data.
 _C.trainer.track_grad_norm = -1 # -1 no tracking. Otherwise tracks that norm. if equals to 2, then 2-norm will be traced
-_C.trainer.check_val_every_n_epoch = 1
+_C.trainer.check_val_every_n_epoch = 1 # Check val every n train epochs.
 _C.trainer.fast_dev_run = False # everything only with 1 training and 1 validation batch.
-_C.trainer.accumulate_grad_batches = 1
-_C.trainer.max_epochs = 100
-_C.trainer.min_epochs = 1
-_C.trainer.train_percent_check = 1.0
-_C.trainer.val_percent_check = 1.0
-_C.trainer.test_percent_check = 1.0
-_C.trainer.val_check_interval = 1.0
+_C.trainer.accumulate_grad_batches = 1 # Accumulates grads every k batches or as set up in the dict.
+_C.trainer.max_epochs = 200 # Stop training once this number of epochs is reached.
+_C.trainer.min_epochs = 100 # Force training for at least these many epochs
+_C.trainer.max_steps = 100 # Stop training after this number of steps. Disabled by default (None).
+_C.trainer.min_steps = 100 # Force training for at least these number of steps. Disabled by default (None).
+_C.trainer.train_percent_check = 1.0 # How much of training dataset to check.
+_C.trainer.val_percent_check = 1.0 # How much of validation dataset to check.
+_C.trainer.test_percent_check = 1.0 # How much of test dataset to check.
+_C.trainer.val_check_interval = 1.0 # How often within one training epoch to check the validation set
 _C.trainer.log_save_interval = 100 # Writes logs to disk this often
 _C.trainer.row_log_interval = 10 # How often to add logging rows (does not write to disk)
-_C.trainer.distributed_backend = 'dp' # 'dp', 'ddp', 'ddp2'.
-_C.trainer.use_amp = False
-_C.trainer.print_nan_grads = True # Prints gradients with nan values
+_C.trainer.distributed_backend = 'dp' # 'dp', 'ddp', 'ddp2', 'horovod'
+_C.trainer.use_amp = False # will be removed, please use `precision` as below instead.
+_C.trainer.amp_level = 'O1' # will be removed, please use `precision` as below instead.
+_C.trainer.precision = 32 # Full precision (32), half precision (16).
+_C.trainer.print_nan_grads = True # Prints gradients with nan values. will be removed
 _C.trainer.weights_summary = '' # 'full', 'top', None.
-_C.trainer.weights_save_path = ''
-_C.trainer.amp_level = 'O1'
-_C.trainer.num_sanity_val_steps = 5
+_C.trainer.weights_save_path = '' # Where to save weights if specified. Will override default_root_dir for checkpoints only. 
+                                  # Use this if for whatever reason you need the checkpoints stored in a different place 
+                                  # than the logs written in `default_root_dir`.
+_C.trainer.num_sanity_val_steps = 5 # Sanity check runs n batches of val before starting the training routine.
 _C.trainer.truncated_bptt_steps = ''
 _C.trainer.resume_from_checkpoint = ''
 # _C.trainer.profiler = ''
+_C.trainer.reload_dataloaders_every_epoch = False # Set to True to reload dataloaders every epoch
+_C.trainer.auto_lr_find = False # If set to True, will `initially` run a learning rate finder,
+                                # trying to optimize initial learning for faster convergence. Sets learning
+                                # rate in self.hparams.lr | self.hparams.learning_rate in the lightning module.
+                                # To use a different key, set a string instead of True with the key name.
 
+_C.trainer.replace_sampler_ddp = True # Explicitly enables or disables sampler replacement. 
+                                      # If not specified this will toggled automatically ddp is used
+
+_C.trainer.benchmark = False # If true enables cudnn.benchmark.
+_C.trainer.terminate_on_nan = False# If set to True, will terminate training (by raising a `ValueError`) at the
+    # end of each training batch, if any of the parameters or the loss are NaN or +/-inf.
+
+_C.trainer.auto_scale_batch_size = False # If set to True, will `initially` run a batch size
+                                        # finder trying to find the largest batch size that fits into memory.
+                                        # The result will be stored in self.hparams.batch_size in the LightningModule.
+                                        # Additionally, can be set to either `power` that estimates the batch size through
+                                        # a power search or `binsearch` that estimates the batch size through a binary search.
 
 _C.trainer.logger = CN()
 _C.trainer.logger.type = 'test_tube'
 _C.trainer.logger.setting = 0 # 0: True  1: False  2: custom
 _C.trainer.logger.mlflow = CN()
 _C.trainer.logger.mlflow.experiment_name = 'torchline_logs'
-_C.trainer.logger.mlflow.tracking_uri = _C.trainer.default_save_path
+_C.trainer.logger.mlflow.tracking_uri = _C.trainer.default_root_dir
 _C.trainer.logger.test_tube = CN()
 _C.trainer.logger.test_tube.name = 'torchline_logs'
-_C.trainer.logger.test_tube.save_dir = _C.trainer.default_save_path
+_C.trainer.logger.test_tube.save_dir = _C.trainer.default_root_dir
 _C.trainer.logger.test_tube.version = -1 #  # if <0, then use default version. Otherwise, it will restore the version.
 
 
