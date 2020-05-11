@@ -54,8 +54,8 @@ class DefaultTrainer(Trainer):
             params = {key: logger_cfg.test_tube[key] for key in logger_cfg.test_tube} # key: save_dir, name, version
 
             # save_dir: logger root path: 
-            if self.cfg.trainer.default_save_path:
-                save_dir = self.cfg.trainer.default_save_path
+            if self.cfg.trainer.default_root_dir:
+                save_dir = self.cfg.trainer.default_root_dir
             else:
                 save_dir = logger_cfg.test_tube.save_dir
             

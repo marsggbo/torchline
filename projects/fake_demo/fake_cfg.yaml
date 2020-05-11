@@ -1,18 +1,51 @@
 DEFAULT_CUDNN_BENCHMARK: True
 SEED: 666
 VERSION: 1
+abtfs:
+    blur:
+        blur_limit: 3
+        enable: 0
+    bright:
+        clip_limit: 1
+        enable: 1
+    channel_dropout:
+        drop_range: (1, 1)
+        enable: 0
+        fill_value: 127
+    channel_shuffle:
+        enable: 0
+    cutout:
+        enable: 1
+        fill_value: 127
+        num_holes: 10
+        size: 20
+    distortion:
+        enable: 0
+    hue:
+        enable: 0
+    noise:
+        enable: 1
+    random_grid_shuffle:
+        enable: 0
+        grid: 2
+    rotate:
+        enable: 1
+        p: 1
+        rotate_limit: 45
+        scale_limit: 0.2
+        shift_limit: 0.0625
 dataloader:
     num_workers: 0
     sample_test: 'default'
     sample_train: 'default'
 dataset:
     batch_size: 1
-    dir: './datasets/cifar10'
+    dir: ''
     is_train: False
     name: 'fakedata'
-    test_list: './datasets/test_skin10.txt'
-    train_list: './datasets/train_skin10.txt'
-    valid_list: './datasets/valid_skin10.txt'
+    test_list: ''
+    train_list: ''
+    valid_list: ''
 hooks:
     early_stopping:
         min_delta: 0.0
@@ -60,7 +93,9 @@ optim:
         name: 'MultiStepLR'
         patience: 10
         step_size: 10
+        t_0: 5
         t_max: 10
+        t_mul: 20
         verbose: True
     weight_decay: 0.0005
 predict_only:
@@ -76,9 +111,12 @@ predict_only:
 topk: [1, 3]
 trainer:
     accumulate_grad_batches: 1
-    amp_level: 'O1'
+    auto_lr_find: False
+    auto_scale_batch_size: False
+    auto_select_gpus: False
+    benchmark: False
     check_val_every_n_epoch: 1
-    default_save_path: './output_fakedata'
+    default_root_dir: './output'
     distributed_backend: 'dp'
     fast_dev_run: False
     gpus: []
@@ -92,25 +130,32 @@ trainer:
         setting: 0
         test_tube:
             name: 'torchline_logs'
-            save_dir: './output_fakedata'
+            save_dir: './output'
             version: -1
         type: 'test_tube'
     max_epochs: 100
-    min_epochs: 1
+    max_steps: 1000
+    min_epochs: 10
+    min_steps: 400
     name: 'DefaultTrainer'
     num_nodes: 1
     num_sanity_val_steps: 5
+    num_tpu_cores: ''
     overfit_pct: 0.0
+    precision: 32
     print_nan_grads: True
     process_position: 0
+    progress_bar_refresh_rate: 0
+    reload_dataloaders_every_epoch: False
+    replace_sampler_ddp: True
     resume_from_checkpoint: ''
     row_log_interval: 10
     show_progress_bar: False
+    terminate_on_nan: False
     test_percent_check: 1.0
     track_grad_norm: -1
     train_percent_check: 1.0
     truncated_bptt_steps: ''
-    use_amp: False
     val_check_interval: 1.0
     val_percent_check: 1.0
     weights_save_path: ''

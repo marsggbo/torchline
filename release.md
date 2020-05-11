@@ -100,6 +100,9 @@
 - 更新module forward函数
 - 增加loss函数，最小化entropy
 
+## v0.3.0.0 2020.05.11
+- 适配pytorchlightning 0.7.5
+
 # TODO list 
 
 
@@ -133,10 +136,7 @@
 - [ ] checkpoint将scheduler参数也保存，同时添加设置可以跳过optimizer或scheduler的restore
 - [ ] multi-gpus情况下日志会生成多份，打印信息也有这种情况
 - [ ] 文件结构重构
-
-
-## v3.0 todo list
-- [ ] 适配pytorchlightning 0.7.0版本 # 在大版本v0.3.0.0中更新
-- [ ] 规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新
-- [ ] albumentations和torchvision读取图片使用的分别是cv2和PIL，数据格式分别是numpy和PIL.Image，后面需要考虑如何统一格式。
+- [x] 适配pytorchlightning 0.7.5版本
+- [x] ~~规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新~~
+- [ ] ~~albumentations和torchvision读取图片使用的分别是cv2和PIL，数据格式分别是numpy和PIL.Image，后面需要考虑如何统一格式。~~
 - [ ] 增加`Module`中`print_log`通用性

@@ -21,7 +21,7 @@ class CfgNode(_CfgNode):
                 version = max(versions)+1
             return version
 
-        save_dir=self.trainer.default_save_path
+        save_dir=self.trainer.default_root_dir
         logger_name=self.trainer.logger.test_tube.name
         path = os.path.join(save_dir, logger_name)
         if self.trainer.logger.setting==0:
@@ -52,7 +52,7 @@ class CfgNode(_CfgNode):
             self.log.name = os.path.join(self.log.path, 'log.txt')
         else:
             version = self._version()
-            save_dir = self.trainer.default_save_path
+            save_dir = self.trainer.default_root_dir
             logger_name = self.trainer.logger.test_tube.name
             self.log.path = os.path.join(save_dir, logger_name, f"version_{version}")
             self.log.name = os.path.join(self.log.path, 'log.txt')
