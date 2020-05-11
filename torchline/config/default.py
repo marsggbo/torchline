@@ -70,12 +70,18 @@ _C.abtfs.noise.enable = 1
 
 _C.abtfs.blur = CN()
 _C.abtfs.blur.enable = 0
+_C.abtfs.blur.blur_limit = 3
 
 _C.abtfs.rotate = CN()
 _C.abtfs.rotate.enable = 1
-
+_C.abtfs.rotate.p = 1
+_C.abtfs.rotate.shift_limit = 0.0625
+_C.abtfs.rotate.scale_limit = 0.2
+_C.abtfs.rotate.rotate_limit = 45
+                 
 _C.abtfs.bright = CN()
 _C.abtfs.bright.enable = 1
+_C.abtfs.bright.clip_limit = 1
 
 _C.abtfs.distortion = CN()
 _C.abtfs.distortion.enable = 0
