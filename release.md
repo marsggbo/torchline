@@ -125,10 +125,13 @@
 - [ ] 多GPU运行时日志会因为多线程而导致先后输出不同batch的结果，需要在结果整合后再输出结果，可以考虑将`print_log`放到`on_batch_end`里去
 - [ ] 设置更多默认的数据集
 - [ ] 完善使用文档
-- [ ] 评估使用hydra代替yacs的必要性
+- [x] ~~评估使用hydra代替yacs的必要性~~（工作量太大）
 - [ ] 增加config参数鲁棒性和兼容性
 - [ ] 多机多卡测试
-- [ ] template project. 可快速基于torchline创建一个新项目
+- [x] template project. 可快速基于torchline创建一个新项目
+- [ ] 将`default_module`中的`parse_cfg_for_scheduler`解耦，放到`utils.py`文件中去
+- [ ] checkpoint将scheduler参数也保存，同时添加设置可以跳过optimizer或scheduler的restore
+- [ ] multi-gpus情况下日志会生成多份，打印信息也有这种情况
 
 
 ## v3.0 todo list
