@@ -58,6 +58,10 @@ hooks:
         filepath: ''
         mode: 'max'
         monitor: 'valid_acc_1'
+        period: 1
+        prefix: ''
+        save_top_k: 1
+        save_weights_only: False
         setting: 2
         verbose: 1
 input:

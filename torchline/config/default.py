@@ -243,6 +243,8 @@ _C.hooks.model_checkpoint.mode = 'min'
 _C.hooks.model_checkpoint.save_top_k = 1
 _C.hooks.model_checkpoint.save_weights_only = False
 _C.hooks.model_checkpoint.verbose = 1
+_C.hooks.model_checkpoint.period = 1
+_C.hooks.model_checkpoint.prefix = ''
 
 
 # ---------------------------------------------------------------------------- #
