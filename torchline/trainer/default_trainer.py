@@ -35,7 +35,7 @@ class DefaultTrainer(Trainer):
         self.trainer_params.pop('name')
         for key in self.trainer_params:
             self.trainer_params[key] = self.parse_cfg_param(self.trainer_params[key])
-            
+
         super(DefaultTrainer, self).__init__(**self.trainer_params)
 
     def parse_cfg_param(self, cfg_item):
@@ -58,12 +58,17 @@ class DefaultTrainer(Trainer):
                 save_dir = self.cfg.trainer.default_root_dir
             else:
                 save_dir = logger_cfg.test_tube.save_dir
-            
+
             # version
-            if logger_cfg.setting==1:
+            version = self.cfg.trainer.logger.test_tube.version
+            if logger_cfg.setting==1: # disable logger
                 return False
+            elif logger_cfg.setting==2: # use custom logger
+                # if version < o, then use the default value. else use custom value
+                if version<0:
+                    version = int(self.cfg.log.path.replace('/','')[-1])
             else:
-                version = self.cfg.log.path[-1]
+                version = int(self.cfg.log.path.replace('/','')[-1])
 
             default_logger = TestTubeLogger(save_dir, name='torchline_logs', version=version)
             params.update({'version': version, 'name':logger_cfg.test_tube.name, 'save_dir': save_dir})
@@ -71,7 +76,7 @@ class DefaultTrainer(Trainer):
         else:
             print(f"{logger_cfg.type} not supported")
             raise NotImplementedError
-        
+
         loggers = {
             0: default_logger,
             1: False,
@@ -103,6 +108,8 @@ class DefaultTrainer(Trainer):
         if hooks.model_checkpoint.setting==2:
             if hooks.model_checkpoint.filepath.strip()=='':
                 filepath = os.path.join(self.cfg.log.path,'checkpoints')
+                monitor = hooks.model_checkpoint.monitor
+                filepath = os.path.join(filepath, '{epoch}-{%s:.2f}'%monitor)
                 params.update({'filepath': filepath})
             else:
                 self.logger_print.warn("The specified checkpoint path is not recommended!")

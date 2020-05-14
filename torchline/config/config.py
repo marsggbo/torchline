@@ -45,11 +45,17 @@ class CfgNode(_CfgNode):
 
         # './outputs/torchline_logs/version_0/checkpoints/_ckpt_epoch_1.ckpt'
         ckpt_file = self.trainer.resume_from_checkpoint
-        if ckpt_file:
+        if ckpt_file: # resume cfg
             assert os.path.exists(ckpt_file), f"{ckpt_file} not exits"
             ckpt_path = os.path.dirname(ckpt_file).split('/')[:-1]
+            # set log cfg
             self.log.path = ''.join([p+'/' for p in ckpt_path])
             self.log.name = os.path.join(self.log.path, 'log.txt')
+            # set trainer logger cfg
+            self.trainer.logger.setting = 2
+            root = self.trainer.default_root_dir
+            self.trainer.logger.test_tube.name = ckpt_file.replace(root,'').split('/')[1]
+            # self.trainer.logger.test_tube.version
         else:
             version = self._version()
             save_dir = self.trainer.default_root_dir
@@ -75,7 +81,7 @@ class CfgNode(_CfgNode):
         else:
             torch.backends.cudnn.benchmark = self.DEFAULT_CUDNN_BENCHMARK
 
-        print("Running with full config:\n{}".format(self))
+        Logger(__name__, self.log.name).getlogger().info("Running with full config:\n{}".format(self))
 
     def __str__(self):
         def _indent(s_, num_spaces):

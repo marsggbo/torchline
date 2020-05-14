@@ -127,7 +127,7 @@ trainer:
         mlflow:
             experiment_name: 'torchline_logs'
             tracking_uri: './output'
-        setting: 0
+        setting: 2
         test_tube:
             name: 'torchline_logs'
             save_dir: './output'

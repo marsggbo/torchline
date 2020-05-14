@@ -228,18 +228,20 @@ _C.hooks = CN()
 ## EarlyStopping
 _C.hooks.early_stopping = CN()
 _C.hooks.early_stopping.setting = 2 # 0: True 1: False 2: custom
-_C.hooks.early_stopping.monitor = 'valid_loss'
+_C.hooks.early_stopping.monitor = 'valid_loss' # or 'valid_acc_1
 _C.hooks.early_stopping.min_delta = 0.
 _C.hooks.early_stopping.patience = 10
-_C.hooks.early_stopping.mode = 'min'
+_C.hooks.early_stopping.mode = 'min' # or 'max
 _C.hooks.early_stopping.verbose = 1
 
 # ModelCheckpoint
 _C.hooks.model_checkpoint = CN()
-_C.hooks.model_checkpoint.setting = 0 # 0: True 1: False 2: custom
+_C.hooks.model_checkpoint.setting = 2 # 0: True 1: False 2: custom
 _C.hooks.model_checkpoint.filepath = '' # the empty file path is recommended
 _C.hooks.model_checkpoint.monitor = 'valid_loss'
 _C.hooks.model_checkpoint.mode = 'min'
+_C.hooks.model_checkpoint.save_top_k = 1
+_C.hooks.model_checkpoint.save_weights_only = False
 _C.hooks.model_checkpoint.verbose = 1
 
 
@@ -276,8 +278,8 @@ _C.trainer.fast_dev_run = False # everything only with 1 training and 1 validati
 _C.trainer.accumulate_grad_batches = 1 # Accumulates grads every k batches or as set up in the dict.
 _C.trainer.max_epochs = 200 # Stop training once this number of epochs is reached.
 _C.trainer.min_epochs = 100 # Force training for at least these many epochs
-_C.trainer.max_steps = 100 # Stop training after this number of steps. Disabled by default (None).
-_C.trainer.min_steps = 100 # Force training for at least these number of steps. Disabled by default (None).
+_C.trainer.max_steps = 999999999 # Stop training after this number of steps. Disabled by default (None).
+_C.trainer.min_steps = 999999999 # Force training for at least these number of steps. Disabled by default (None).
 _C.trainer.train_percent_check = 1.0 # How much of training dataset to check.
 _C.trainer.val_percent_check = 1.0 # How much of validation dataset to check.
 _C.trainer.test_percent_check = 1.0 # How much of test dataset to check.
@@ -318,7 +320,7 @@ _C.trainer.auto_scale_batch_size = False # If set to True, will `initially` run 
 
 _C.trainer.logger = CN()
 _C.trainer.logger.type = 'test_tube'
-_C.trainer.logger.setting = 0 # 0: True  1: False  2: custom
+_C.trainer.logger.setting = 2 # 0: True  1: False  2: custom
 _C.trainer.logger.mlflow = CN()
 _C.trainer.logger.mlflow.experiment_name = 'torchline_logs'
 _C.trainer.logger.mlflow.tracking_uri = _C.trainer.default_root_dir

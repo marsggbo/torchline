@@ -103,6 +103,9 @@
 ## v0.3.0.0 2020.05.11
 - 适配pytorchlightning 0.7.5
 
+## v0.3.0.1 2020.05.14
+- 完善logger path自动匹配功能；例如，当resume_from_checkpoint时会自动还原之前的logger路径。反之则会自动更新logger version。
+
 # TODO list 
 
 
@@ -138,5 +141,5 @@
 - [ ] 文件结构重构
 - [x] 适配pytorchlightning 0.7.5版本
 - [x] ~~规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新~~
-- [ ] ~~albumentations和torchvision读取图片使用的分别是cv2和PIL，数据格式分别是numpy和PIL.Image，后面需要考虑如何统一格式。~~
+- [x] ~~albumentations和torchvision读取图片使用的分别是cv2和PIL，数据格式分别是numpy和PIL.Image，后面需要考虑如何统一格式。~~ (在实现transformation的时候特别处理一下)
 - [ ] 增加`Module`中`print_log`通用性
