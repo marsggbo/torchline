@@ -1,4 +1,4 @@
-# torchline v0.3.0.1
+# torchline v0.3.0.2
 
 > Easy to use Pytorch
 > 
@@ -12,13 +12,13 @@
 - Pytorch>=1.3.1
 - torchvision>=0.4.0,<0.5.0
 - yacs==0.1.6
-- pytorch-lightning>=0.6.0,<0.7.0
+- pytorch-lightning<=0.7.6
 
 
 # Install
 
 - Before you install `torchline`, please make sure you have installed the above libraries.
-- Only support on Linux
+- You can use `torchline` both in Linux and Windows.
 
 ```bash
 pip install -U torchline
@@ -35,8 +35,9 @@ python main.py --config_file cifar10.yaml trainer.device_ids [0,1]
 ## debug，add command line `trainer.fast_dev_run True`
 ```python
 cd projects/cifar10_demo
-CUDA_VISIBLE_DEVICES=0 python main.py --config_file cifar10.yaml trainer.device_ids [0] trainer.fast_dev_run True
+python main.py --config_file cifar10.yaml trainer.device_ids [0] trainer.fast_dev_run True
 ```
+
 CIFAR demo uses ResNet50，which is trained for 72 epochs and achieved the best result (94.39% validation accuracy) at the epoch 54.
 
 # Thanks

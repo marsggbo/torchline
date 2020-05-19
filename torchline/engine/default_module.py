@@ -10,17 +10,19 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 import torchvision.transforms as transforms
 from pytorch_lightning import LightningModule
+from sklearn import metrics
 from torch import optim
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
-import torchvision
 
 from torchline.data import build_data, build_sampler
 from torchline.losses import build_loss_fn
 from torchline.models import build_model
-from torchline.utils import topk_acc, AverageMeterGroup
+from torchline.utils import AverageMeterGroup, topk_acc
+
 from .build import MODULE_REGISTRY
 from .utils import generate_optimizer, generate_scheduler
 
@@ -245,7 +247,7 @@ class DefaultModule(LightningModule):
             loss_val = loss_val.unsqueeze(0)
             val_acc_1 = val_acc_1.unsqueeze(0)
             val_acc_k = val_acc_k.unsqueeze(0)
-        
+
         output = OrderedDict({
             'valid_loss': loss_val,
             'valid_acc_1': val_acc_1,
@@ -255,10 +257,15 @@ class DefaultModule(LightningModule):
         self.valid_meters.update({key: val.item() for key, val in tqdm_dict.items()})
         self.print_log(batch_idx, False, inputs, self.valid_meters)
 
+        if self.cfg.module.analyze_result:
+            output.update({
+                'predictions': predictions.cpu().detach(),
+                'gt_labels': gt_labels.cpu().detach(),
+            })
         # can also return just a scalar instead of a dict (return loss_val)
         return output
 
-    def validation_end(self, outputs):
+    def validation_epoch_end(self, outputs):
         """
         Called at the end of validation to aggregate outputs
         :param outputs: list of individual outputs of each validation step
@@ -270,13 +277,33 @@ class DefaultModule(LightningModule):
 
         tqdm_dict = {key: val.avg for key, val in self.valid_meters.meters.items()}
         result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'valid_loss': self.valid_meters.meters['valid_loss'].avg}
+
+        if self.cfg.module.analyze_result:
+            predictions = []
+            gt_labels = []
+            for output in outputs:
+                predictions.append(output['predictions'])
+                gt_labels.append(output['gt_labels'])
+            predictions = torch.cat(predictions)
+            gt_labels = torch.cat(gt_labels)
+            analyze_result = self.analyze_result(gt_labels, predictions)
+            self.log_info(analyze_result)
+            result.update({'analyze_result': analyze_result})
         return result
 
     def test_step(self, batch, batch_idx):
         return self.validation_step(batch, batch_idx)
-    
-    def test_end(self, outputs):
-        return self.validation_end(outputs)
+
+    def test_epoch_end(self, outputs):
+        return self.validation_epoch_end(outputs)
+
+    def analyze_result(self, gt_labels, predictions):
+        '''
+        Args:
+            gt_lables: tensor (N)
+            predictions: tensor (N*C)
+        '''
+        return str(metrics.classification_report(gt_labels, predictions.argmax(1)))
 
     # ---------------------
     # TRAINING SETUP

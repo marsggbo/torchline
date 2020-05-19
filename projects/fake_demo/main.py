@@ -33,6 +33,7 @@ class FakeNet(torch.nn.Module):
         out = self.feat(x)
         out = torch.nn.AdaptiveAvgPool2d(1)(out).view(b, -1)
         out = self.clf(out)
+        out = torch.softmax(out, dim=1)
         return out
 
 def main(hparams):

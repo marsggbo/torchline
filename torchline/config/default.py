@@ -253,6 +253,10 @@ _C.hooks.model_checkpoint.prefix = ''
 
 _C.module = CN()
 _C.module.name = 'DefaultModule'
+_C.module.analyze_result = False 
+# analyze the predictions and gt_laels, e.g., compute the f1_score, precision
+# you can modify the `analyze_result(self, gt_labels, predictions)` in `default_module.py`
+
 
 # ---------------------------------------------------------------------------- #
 # Trainer 

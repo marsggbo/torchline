@@ -106,6 +106,9 @@
 ## v0.3.0.1 2020.05.14
 - 完善logger path自动匹配功能；例如，当resume_from_checkpoint时会自动还原之前的logger路径。反之则会自动更新logger version。
 
+## v0.3.0.2 2020.05.19
+- 允许`DefaultModule`存储计算中的所有`gt_labels`和`predictions`,然后可以通过`analyze_result`函数计算指定的指标，例如precision或者auc等。
+
 # TODO list 
 
 
