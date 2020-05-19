@@ -1,4 +1,4 @@
-# torchline v0.3.0.2
+# torchline v0.3.0.3
 
 > Easy to use Pytorch
 > 

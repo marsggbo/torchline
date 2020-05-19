@@ -109,6 +109,9 @@
 ## v0.3.0.2 2020.05.19
 - 允许`DefaultModule`存储计算中的所有`gt_labels`和`predictions`,然后可以通过`analyze_result`函数计算指定的指标，例如precision或者auc等。
 
+## v0.3.0.3 2020.05.19
+- 修复上一版本在多GPU状态下报错的问题
+
 # TODO list 
 
 
