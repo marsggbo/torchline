@@ -1,4 +1,4 @@
-# torchline v0.3.0.3
+# torchline v0.3.0.4
 
 > Easy to use Pytorch
 > 
@@ -21,7 +21,7 @@
 - You can use `torchline` both in Linux and Windows.
 
 ```bash
-pip install -U torchline
+pip install torchline
 ```
 
 # Run demo
@@ -29,13 +29,13 @@ pip install -U torchline
 ## train model with GPU0 and GPU 1
 ```python
 cd projects/cifar10_demo
-python main.py --config_file cifar10.yaml trainer.device_ids [0,1]
+python main.py --config_file cifar10.yaml trainer.gpus [0,1]
 ```
 
 ## debug，add command line `trainer.fast_dev_run True`
 ```python
 cd projects/cifar10_demo
-python main.py --config_file cifar10.yaml trainer.device_ids [0] trainer.fast_dev_run True
+python main.py --config_file cifar10.yaml trainer.gpus [0] trainer.fast_dev_run True
 ```
 
 CIFAR demo uses ResNet50，which is trained for 72 epochs and achieved the best result (94.39% validation accuracy) at the epoch 54.

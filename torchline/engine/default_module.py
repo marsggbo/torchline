@@ -50,6 +50,8 @@ class DefaultModule(LightningModule):
         # if you specify an example input, the summary will show input/output for each layer
         h, w = self.cfg.input.size
         self.example_input_array = torch.rand(1, 3, h, w)
+        self.crt_batch_idx = 0
+        self.inputs = self.example_input_array
 
         # build model
         self.model = self.build_model(cfg)
@@ -219,7 +221,7 @@ class DefaultModule(LightningModule):
         })
 
         self.train_meters.update({key: val.item() for key, val in tqdm_dict.items()})
-        self.print_log(batch_idx, True, inputs, self.train_meters)
+        # self.print_log(batch_idx, True, inputs, self.train_meters)
 
         # can also return just a scalar instead of a dict (return loss_val)
         return output
@@ -255,7 +257,7 @@ class DefaultModule(LightningModule):
         })
         tqdm_dict = {k: v for k, v in dict(output).items()}
         self.valid_meters.update({key: val.item() for key, val in tqdm_dict.items()})
-        self.print_log(batch_idx, False, inputs, self.valid_meters)
+        # self.print_log(batch_idx, False, inputs, self.valid_meters)
 
         if self.cfg.module.analyze_result:
             output.update({
@@ -263,6 +265,15 @@ class DefaultModule(LightningModule):
                 'gt_labels': gt_labels.detach(),
             })
         # can also return just a scalar instead of a dict (return loss_val)
+        return output
+
+    def training_step_end(self, output):
+        self.print_log(self.trainer.batch_idx, True, self.inputs, self.train_meters)
+        return output
+
+    def validation_step_end(self, output):
+        self.crt_batch_idx += 1
+        self.print_log(self.crt_batch_idx, False, self.inputs, self.valid_meters)
         return output
 
     def validation_epoch_end(self, outputs):
@@ -275,8 +286,13 @@ class DefaultModule(LightningModule):
         # we return just the average in this case (if we want)
         # return torch.stack(outputs).mean()
 
+        self.crt_batch_idx = 0
         tqdm_dict = {key: val.avg for key, val in self.valid_meters.meters.items()}
-        result = {'progress_bar': tqdm_dict, 'log': tqdm_dict, 'valid_loss': self.valid_meters.meters['valid_loss'].avg}
+        valid_loss = torch.tensor(self.valid_meters.meters['valid_loss'].avg)
+        valid_acc_1 = torch.tensor(self.valid_meters.meters['valid_acc_1'].avg)
+        result = {'progress_bar': tqdm_dict, 'log': tqdm_dict,
+                  'valid_loss': valid_loss,
+                  'valid_acc_1': valid_acc_1}
 
         if self.cfg.module.analyze_result:
             predictions = []

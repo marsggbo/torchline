@@ -112,6 +112,9 @@
 ## v0.3.0.3 2020.05.19
 - 修复上一版本在多GPU状态下报错的问题
 
+## v0.3.0.4 2020.05.19
+- 修复多GPU状态下重复打印日志问题
+
 # TODO list 
 
 
@@ -134,7 +137,7 @@
 - [x] ~~resnet结构可能有问题，resnet50应该有98MB，但是实现只有89.7~~。（没有错，只是因为计算时将classes设置成了10，所以导致了误差）
 - [x] 单机多卡多GPU测试
 - [x] ~~考虑是否将finetune设置内嵌到模型中~~ (取消设置，避免模型代码臃肿)
-- [ ] 多GPU运行时日志会因为多线程而导致先后输出不同batch的结果，需要在结果整合后再输出结果，可以考虑将`print_log`放到`on_batch_end`里去
+- [x] 多GPU运行时日志会因为多线程而导致先后输出不同batch的结果，需要在结果整合后再输出结果，可以考虑将`print_log`放到`on_batch_end`里去(#v0.3.0.4)
 - [ ] 设置更多默认的数据集
 - [ ] 完善使用文档
 - [x] ~~评估使用hydra代替yacs的必要性~~（工作量太大）
@@ -143,7 +146,7 @@
 - [x] template project. 可快速基于torchline创建一个新项目
 - [ ] 将`default_module`中的`parse_cfg_for_scheduler`解耦，放到`utils.py`文件中去
 - [ ] checkpoint将scheduler参数也保存，同时添加设置可以跳过optimizer或scheduler的restore
-- [ ] multi-gpus情况下日志会生成多份，打印信息也有这种情况
+- [x] multi-gpus情况下日志会生成多份，打印信息也有这种情况(#v0.3.0.4)
 - [ ] 文件结构重构
 - [x] 适配pytorchlightning 0.7.5版本
 - [x] ~~规范参数名称，尽量使用全程，如使用optimizer而不是optim # 在大版本v0.3.0.0中更新~~
