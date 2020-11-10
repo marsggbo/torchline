@@ -49,11 +49,11 @@ hooks:
     early_stopping:
         setting: 2
         patience: 20
-        monitor: 'val_acc_1'
+        monitor: 'valid_acc_1'
         mode: 'max'
     model_checkpoint:
         setting: 2
-        monitor: 'val_acc_1'
+        monitor: 'valid_acc_1'
         mode: 'max'
         filepath: ''
 topk: [1, 3]
